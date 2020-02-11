@@ -1,0 +1,306 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 08-Feb-2020, 10:56:09
+    Author     : John YK
+*/
+* {margin: 0; padding: 0;}
+
+body{
+    font-family: sans-serif;
+}
+
+/*SIDENAV */
+.sidenav {
+  padding-left: 50px;
+  height: 100%;
+  width: 0; /* 0 width - change this with JavaScript */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Stay on top */
+  top: 10%; /* Stay at the top */
+  right: -50px;
+  background-color: #003880; /* Black*/
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 30px; /* Place content 60px from the top */
+  transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+}
+/* The navigation menu links */
+.sidenav a {
+  text-decoration: none;
+  font-size: 17px;
+  color: white;
+  display: block;
+  transition: 0.3s;
+  line-height: 50px;
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidenav a:hover {
+  color: #1E90FF;
+}
+
+/* Position and style the close button (top right corner) */
+.sidenav .closebtn {
+  position: absolute;
+  top: -40px;
+  right: 60px;
+  font-size: 28px;
+  padding-top:30px;
+}
+.danger-zone a{
+    color:#FF8C00;
+}
+
+
+
+/*MAIN NAVIGATION */
+.bg-light{
+    background-color: #f768d7 !important;
+    padding: 0;
+    border-radius: 0;
+}
+.navbar {
+    margin-bottom: 0 !important;
+    border-radius:0 !important;
+    border-style:none ! important;
+}
+
+.navbar btn-primary{
+    margin-top: 0;
+}
+
+.navbar-right img{
+    width: 30px;
+    height:30px;
+    border-radius: 50px;
+}
+#navbarItems a{
+    font-size: 16px;
+    color: white;
+}
+.navbar-left a:hover{
+    text-decoration: underline;
+    color: #000 !important;
+}
+#navbarItems .active{
+    color:#000;
+}
+#navbarItems .active:hover{
+    text-decoration: none;
+}
+#main-row{
+    padding: 8px;
+    margin: 0 10px 10px 10px;
+}
+
+.recommended-groups{
+    padding:0 5px;
+    
+}
+.recommended-groups li{
+    list-style:none;
+    
+}
+.recommended-groups a, .recommended-groups p{
+    color: #269abc;
+    display: inline;
+}
+.recommended-groups .fa-plus, .fa-minus{
+    width:15px;
+    height: 15px;
+    color:white;
+    background: #269abc;
+    border-radius: 50px;
+}
+.recommended-groups .fa-plus:hover, .fa-minus:hover{
+    background:#007bff; 
+}
+.recommended-groups a:hover{
+    text-decoration: none;
+    color:#007bff;
+}
+.btn-outline-primary{
+    border: 1px solid #007bff !important;
+    color: #007bff;
+}
+.btn-outline-primary:hover{
+    color:white !important;
+}
+.navbar-left li:first-child{
+    padding-top: 10px;
+}
+.navbar-collapse.collapse{
+    padding:0;
+}
+
+.panel-primary > .panel-heading{ 
+    background: white !important;
+    padding: 2px 15px 0 0;
+}
+.column{
+    border: 1px solid rgba(0,0,0,.125);
+    padding: 10px 5px !important;
+}
+.navbar-right li{
+    list-style: none;
+}
+.column-title{
+    font-size: 16px;
+    color: white;
+    background-color: #003880;
+    display: block;
+    padding: 10px;
+}
+
+#news-feed .card {
+    padding: 15px;
+    text-align:justify;
+}
+#news-feed .card:not(:first-of-type){
+    margin-top: 10px;
+}
+#news-feed .card a img{
+    height: 250px;
+    width: 97%;
+    margin:auto !important;
+}
+#news-feed .card .post-title{
+    font-weight:700;
+}
+.post-title span{
+    font-weight:400;
+}
+#news-feed .card .post-footer li{
+    display: inline;
+}
+#news-feed .card .post-footer li:first-child{
+    margin-left: 20px;
+}
+#news-feed .card .post-footer li:nth-child(2){
+    margin-right: 20px;
+}
+#column-3-subtitles h6{
+    font-size:13px;
+    font-weight:700;
+    display: inline;
+}
+.messaging_link{
+    margin-left: 30%;
+    font-size:17px;
+    color:#007bff;
+}
+#quick-chat-panel th, #quick-chat-panel td{
+    width: 20%;
+        
+}
+
+/*QUESTION MODAL*/
+#questionModal{
+    overflow: visible;
+    padding-top:100px;
+    background: rgba(0,0,0,0.4);
+}
+#questionModal .modal-header{
+    padding: 5px 15px;
+    margin-top: 15px;
+}
+#questionModal .modal-header h5{
+    font-weight:700;
+}
+#questionModal .modal-body{
+    padding: 0;
+}
+#questionModal .modal-body #question-text{
+    display: block;
+    width:100%;
+    padding: 5px 10px;
+}
+#questionModal .modal-body #question-text:focus{
+    border-style: none;
+}
+#questionModal .modal-body .question-details{
+    padding:10px;
+}
+
+#questionModal .modal-body #question-image{
+    margin-left: 30px;
+}
+#questionModal .modal-body #question-group{
+    border:1px solid #222;
+    border-radius:5px;
+    width: 80%;
+    padding: 5px;
+}
+#questionSubmit{
+    width: 100%;
+    font-size: 15px;
+}
+#questionSubmit:hover{
+    background: #007bff;
+}
+
+
+/*##############################################################*/
+
+/*media queries*/
+@media (min-width: 768px) {
+    .navbar-left form{
+        width:250px;
+    }
+    .navbar-left form #search{
+        width: 230px;
+    }
+    .navbar-left{
+        margin-left: 40px !important; 
+    }
+    .navbar-left li{
+        padding-left: 15px;
+    }
+    .navbar-left li:nth-child(2){
+        padding-left: 50px;
+    }
+    .navbar-brand{
+        padding-top: 10px !important;
+        width: 150px;
+        margin-left:0 !important;
+    }
+    .navbar-right{
+        margin-right: 20px ! important;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar-brand{
+        text-align: left;
+    }
+    .navbar-nav form, #navbarItems ul{
+        width: 80%;
+        margin: auto;
+        
+    }
+    .navbar-brand{
+        position:absolute;
+        left: 10px;
+        padding:0 !important;
+        width: 120px;
+        height: 40px;
+        top:10px;
+    }
+    .navbar-toggler{
+        position:absolute;
+        right:15px;
+        top: 10px;
+    }
+    #navbarItems{
+        margin-top: 50px !important;
+    }
+    .navbar-right{
+        margin-left:10%;
+        padding-left:0;
+        margin-top:10px;
+    }
+}

@@ -1,0 +1,56 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+
+{% block body %}
+    <!--Recommendable groups pane-->
+    <div class="col-md-3 column hidden-sm hidden-xs" id="recommended-groups-container">
+        <p class="column-title">Groups you may like</p>
+        <div id="accordion" class="panel-group">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <ul class='recommended-groups'>
+                        <li class="panel-title">
+                            <a href="#panelBodyOne" data-toggle="collapse" id='group_id' data-parent="#accordion">
+                                <i class="fas-icon fas fa-plus"></i></a>
+                            <p><label for="cohort-id">Python Programming</label></p><input class="coh-check pull-right" type="checkbox" id="cohort-id"/>
+                        </li>
+                    </ul>
+                </div>
+                <div id="panelBodyOne" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <ul>
+                            <li>India</li>
+                            <li>China</li>
+                            <li>Japan</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--News feed pane-->
+    <div class="col-md-5 column" id="news-feed">
+        <p class="column-title">News feed</p>
+        <div class="card">
+            <p class="post-title">John Yk <span>></span> Django Web Framework</p>
+            <p>Lorem ipsum began as scrambled, nonsensical Latin derived from Cicero's 1st-century BC text De Finibus Bonorum et Malorum.</p>
+            <a href="#"><img class="img-fluid" src="{% static 'images/nettus.png' %}" alt="Missing Image"/></a>
+            <br />
+            <ul class="post-footer">
+                <li><a href="#"><i class="fas fa-comment"></i> 13 Answers</a></li>
+                <li class="pull-right"><a href="#">Give your answer</a></li>
+            </ul>
+        </div>
+        <div class="card">
+            <p class="post-title">Steve Jnr <span>></span> Html Programming</p>
+            <p>Lorem ipsum began as scrambled, nonsensical Latin derived from Cicero's 1st-century BC text De Finibus Bonorum et Malorum.</p>
+            <a href="#"><img class="img-fluid" src="{% static 'images/register_urls function.PNG' %}" alt="Missing Image"/></a>
+            <br />
+            <ul class="post-footer">
+                <li><a href="#"><i class="fas fa-comment"></i> 5 Answers</a></li>
+                <li class="pull-right"><a href="#">Give your answer</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}

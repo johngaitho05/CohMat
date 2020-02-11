@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load staticfiles %}
+    <title>Cohmat Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}" />
+    <link rel="stylesheet" href="{% static 'mainapp/css/main.css' %}"/>
+</head>
+<body id="body">
+<!--Navigation bar-->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#"><img class="img-fluid" src="{% static 'images/cohmat_home_logo.PNG' %}"
+                                          alt="CohMat"/></a>
+    <button class="navbar-toggler pull-right" type="button" data-toggle="collapse" data-target="#navbarItems"
+            aria-controls="navbarItems" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarItems">
+        <ul class="navbar-nav navbar-left">
+            <li>
+                <form class="form-inline">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Text to search"/>
+                        <div class="input-group-btn">
+                            <button type="button" class="btn btn-default"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="home_link" href="{% url 'mainapp:homeView' %}"><i class="fas fa-home"></i> Home </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " data-toggle="modal" data-target="#questionModal"
+                   id="question_link"  href="#">
+                    <i class="fas fa-plus"></i>
+                    Question
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="groups_link" href="{% url 'mainapp:groupsView' %}"><i class="fas fa-users"></i> Groups</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="notifications_link" href="{% url 'mainapp:notificationsView' %}"><i class="fas fa-bell"></i> Notifications</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="messages_link" href="{% url 'mainapp:messagesView' %}"><i class="fas fa-comment"></i> Messages</a>
+            </li>
+        </ul>
+    </div>
+    <ul class='navbar-right hidden-sm hidden-xs'>
+        <li><a href="#" onclick="openNav()"><img src="{% static 'images/avatar.jpeg' %}" class="img-fluid" alt=""/> John
+            YK</a></li>
+    </ul>
+</nav>
+<!--User details sidenav-->
+<div id="mySidenav" class="sidenav" data-backdrop=''>
+    <a href="#" class="closebtn" onclick="closeNav()">&times;</a>
+    <a href="#">Edit profile</a>
+    <a href="#">Manage my groups</a>
+    <a href="#">Change Password</a>
+    <a href="#">Switch Account</a>
+    <a href="javascript:{document.getElementById('logout_form').submit();}" id="logout">Sign Out</a>
+    <form id="logout_form" method="post" action="#">
+        <!--{% csrf_token %}-->
+        <input type="hidden"/>
+    </form>
+    <div class="danger-zone">
+        <h3 style="color:red">DANGER ZONE</h3>
+        <a href="#">Deactivate Account</a>
+        <a href="#">Delete Account</a>
+    </div>
+</div>
+
+<!--QUIZ MODAL-->
+<div class="modal fade" id="questionModal" tabindex="-1" role="dialog" aria-labelledby="questionleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">New Question</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="">
+                    <textarea placeholder="Type or paste your question here" name="question-text" id="question-text" cols="20" rows="5"  ></textarea>
+                    <div class="row">
+                        <div class="question-details col-md-6">
+                            <input type="file" accept="image/*" id="question-image" name="question-image"/>
+                        </div>
+                        <div class="question-details col-md-6">
+                            <select name="postGroup" id="question-group">
+                                <option value="0">Select group</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="questionSubmit" type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row " id='main-row'>
+    {% block body %}
+    {% endblock %}
+    <!--Chatting pane-->
+    <div class="col-md-4 column hidden-sm hidden-xs" id="quick-chat-panel">
+        <p class="column-title">One-on-one chat </p>
+        <div id="column-3-subtitles">
+            <table class=" table-condensed">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Current Interest</th>
+                    <th>Start Chat</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Steve Jnr</td>
+                    <td>Python</td>
+                    <td><a href="#" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                </tr>
+                <tr>
+                    <td>Paul Korley</td>
+                    <td>Html</td>
+                    <td><a href="#" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+    <script type="text/javascript" src="{% static 'mainapp/js/main.js' %}"></script>
+    <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            styleactivelink('{{ active_link }}')
+        });
+    </script>
+</body>
+</html>
