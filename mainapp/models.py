@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-class Group(models.Model):
+class Cohort(models.Model):
     title = models.CharField(max_length=250)
     logo = models.FileField(upload_to='group_logos')
     description = models.TextField()
@@ -21,7 +21,7 @@ class Group(models.Model):
 class Question(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
-    target_group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    target_cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE)
     content = models.TextField()
     image = models.FileField(upload_to='images')
 

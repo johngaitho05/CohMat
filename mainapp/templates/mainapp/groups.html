@@ -1,8 +1,26 @@
 {% extends 'mainapp/base.html' %}
-
+{% load static %}
 {% block body %}
-    <div class="col-md-5 offset-md-2">
-{#        <img src="" alt="Missing Image"/>#}
+
+    <div class="col-md-7 section-container">
+        <h2 id='page-heading'>Groups</h2>
+        <div class="row group-item">
+            <div class="col-md-4">
+                <img class="img-fluid" src="{% static 'images/nettus.png' %}" alt="Group logo" />
+            </div>
+            <div class="col-md-6">
+                <h3>Group title</h3>
+                <p>
+                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has
+                </p>
+            </div>
+            <div class="col-md-2 text-center">
+                <form>
+                    <input type="hidden" value="group_id"/>
+                    <input type="submit" class="btn btn-success" id="join-btn" value="Join"/>
+                </form>
+            </div>
+        </div>
     </div>
 
 {% endblock %}

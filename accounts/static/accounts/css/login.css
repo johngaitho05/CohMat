@@ -90,3 +90,8 @@ body, .brand_logo_container{
 .custom-checkbox .custom-control-input:checked~.custom-control-label::before {
         background-color: #c0392b !important;
 }
+
+#banner{
+        color:#c0392b;
+        font-size: 17px;
+}

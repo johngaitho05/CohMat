@@ -1,39 +1,33 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
 <head>
-    {% load staticfiles %}
+    {% load static %}
+
     <title>Cohmat Register</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-    <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
     <link rel="stylesheet" href="{% static 'accounts/css/register.css' %}" >
 </head>
 <body>
 <div class="row">
     <div class="col-md-8 offset-md-2" id="page_wrapper">
-        <!--                multistep form
-                        progressbar
-        -->
-        <form id="msform" action="{% url 'register' %}" class="msform">
+        <form id="msform" action="{% url 'accounts:register' %}" class="msform" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
             <ul id="progressbar">
                 <li class="active">Account Setup</li>
                 <li>Personal Details</li>
                 <li>Find Your Community</li>
             </ul>
+            <h3 id="banner">{{ error_message }}</h3>
             <!--fieldsets-->
             <fieldset>
                 <h2 class="fs-title">Create your account</h2>
                 <h3 class="fs-subtitle">This is step 1</h3>
-                <input type="text" name="email" placeholder="Your School Email" />
-                <input type="text" name="username" placeholder="Username" />
-                <input type="password" name="password1" placeholder="Password" />
-                <input type="password" name="password2" placeholder="Confirm Password" />
+                <input type="text" name="email" id="email" placeholder="Your School Email" />
+                <input type="text" name="username" id="username" placeholder="Username" />
+                <input type="password" name="password1" id="password1" placeholder="Password" />
+                <input type="password" name="password2" id="password2" placeholder="Confirm Password" />
                 <input type="button" name="next" class="next action-button" value="Next" />
             </fieldset>
             <fieldset id="profile_details">
@@ -41,21 +35,20 @@ and open the template in the editor.
                 <h3 class="fs-subtitle">Help other CohMat members know more about you</h3>
                 <div class="avatar-upload">
                     <div class="avatar-edit">
-                        <input type='file' id="ProfileImageUpload" name="profile_pic" accept="image/*" />
-                        <label for="ProfileImageUpload"><i class="fas fa-edit"></i></label>
+                        <input type='file' name="profile_photo" id="imageUpload" accept=".png, .jpg, .jpeg" />
+                        <label for="imageUpload"><i class="fas fa-edit"></i></label>
                     </div>
                     <div class="avatar-preview">
-                        <div id="imagePreview" style="background-image: url(https://clipartart.com/images/default-profile-picture-clipart-3.jpg);">
+                        <div id="imagePreview" >
                         </div>
                     </div>
-                    <p>Profile picture</p>
                 </div>
                 <div class="row">
                     <div class="col-sm-6">
-                        <input type="text" name="first_name" placeholder="First Name"/>
+                        <input type="text" name="first_name" id="first_name" placeholder="First Name"/>
                     </div>
                     <div class="col-sm-6">
-                        <input type="text" name="last_name" placeholder="Last Name"/>
+                        <input type="text" name="last_name" id="last_name" placeholder="Last Name"/>
                     </div>
                 </div>
                 <label id="study_field_label" for="study_field">Field of study</label>
@@ -75,38 +68,32 @@ and open the template in the editor.
                 <div class="row">
                     {% for cohort in cohorts %}
                         <div class="col-md-4 col-sm-6">
-{#                        <div class="cohort-item card">#}
-{##}
-{#                        </div>#}
-                            <div class="media cohort-item" onclick="selectCard('{{cohort.id}}')" id="{{cohort.id}}">
-                                <div class="media-object  cohort-logo">
-                                    <img src="{{ cohort.logo.url}}" class="img-fluid" alt="Group logo">
+                            <div class="card cohort-item" id="{{ cohort.id }}" onclick="selectCard('{{ cohort.id }}')">
+                                <img src="{{ cohort.logo.url }}" alt="Group logo"/>
+                                <div class="group-info">
+                                    <h4>{{ cohort.title }}</h4>
+                                    <div class="row">
+                                        <div class="col-sm-6 sub-column">
+                                            <p><i class="fas fa-calendar"></i><span> Date Created</span><br/><span class="group_data">{{ cohort.date_created }}</span></p>
+                                        </div>
+                                        <div class="col-sm-6 sub-column">
+                                            <p><i class="fas fa-users"></i><span> Members</span><br/><span class="group_data">{{ cohort.no_of_members }}</span></p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="media-body cohort-info">
-                                    <h5 style="color:red">{{cohort.title}}</h5>
-                                    <br/>
-                                    <h5><i class="fas fa-calendar"></i> Date created</h5>
-                                    <p class="group_data">{{cohort.date_created}}</p>
-                                    <h5><i class="fas fa-users"></i> Members</h5>
-                                    <p class="group_data">{{cohort.no_of_members}}</p>
-                                    <h5><i class="fas fa-comments"></i> Total posts</h5>
-                                    <p class="group_data">{{cohort.total_posts}}</p>
+                                <div class="row">
+                                    <div class="col-lg-12 text-center">
+                                        <p><i class="far fa-address-book"></i><span> Total posts</span><br/><span class="group_data">{{ cohort.total_posts }}</span></p>
+                                    </div>
+                                    <input class="card-selector"  type="checkbox" id="check-{{ cohort.id }}" name="to_join"  value="{{ cohort.id }}"/>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
                 <br />
-                <div class="row">
-                    <div class="col-md-6 offset-md-3">
-                        <ul class="pager">
-                            <li class="previous disabled pull-left"><a href="#">&larr;Previous</a></li><!--disabled class can also be used to disable the pagination link-->
-                            <li class="next pull-right"><a href="#">Next&rarr;</a></li>
-                        </ul>
-                    </div>
-                </div>
                 <input type="button" name="back" class="previous action-button" value="Back" />
-                <input type="submit" name="submit" class="submit action-button" value="Submit" />
+                <input type="button" onclick="submitRegForm()"  name="submit_button"  class="submit action-button" value="Submit" />
             </fieldset>
         </form>
     </div>
@@ -115,6 +102,7 @@ and open the template in the editor.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+<script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
 <script type="text/javascript" src="{% static 'accounts/js/register.js' %}"></script>
 </body>
 

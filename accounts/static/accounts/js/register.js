@@ -91,7 +91,6 @@ $(".submit").click(function(){
 });
 
 
-// profile picture preview
 function readURL(input) {
     if (input.files && input.files[0]) {
         var reader = new FileReader();
@@ -107,44 +106,58 @@ $("#imageUpload").change(function() {
     readURL(this);
 });
 
-
 function selectCard(id) {
-    cohort = document.getElementById(id);
-    if (cohort.style.border === "thick solid green"){
+    let cohort = document.getElementById(id);
+    let to_check = document.getElementById('check-'.concat(id));
+    if (cohort.style.border === "thick solid green") {
         cohort.style.border = "1px solid rgba(0,0,0,.125)";
-    }else{
+        to_check.checked = false;
+    } else {
         cohort.style.border = "thick solid green";
+        to_check.checked = true;
     }
 }
 
-
-
-
-//$(function () {
-//    // Enables popover
-//    $("[data-toggle=popover]").popover({
-//        
-//    });
-//
-//        // set a flag when you move from button to popover
-//        // dirty but only way I could think of to prevent
-//        // closing the popover when you are navigate across
-//        // the white space between the two
-//        $popover.data('popover').tip().mouseenter(function () {
-//            overPopup = true;
-//        }).mouseleave(function () {
-//            overPopup = false;
-//            $popover.popover('hide');
-//
-//    }).mouseout(function (e) {
-//        // on mouse out of button, close the related popover
-//        // in 200 milliseconds if you're not hovering over the popover
-//        var $popover = $(this);
-//        setTimeout(function () {
-//            if (!overPopup) {
-//                $popover.popover('hide');
-//            }
-//        }, 5000);
-//    });
-//});
+function submitRegForm() {
+    let first_name, last_name, username, email, password1, password2, study_field, cohorts;
+    first_name = document.getElementById('first_name').value;
+    last_name = document.getElementById('last_name').value;
+    username = document.getElementById('username').value;
+    email = document.getElementById('email').value;
+    password1 = document.getElementById('password1').value;
+    password2 = document.getElementById('password2').value;
+    study_field = document.getElementById('study_field').value;
+    cohorts = document.getElementsByClassName('cohort-item');
+    let count = 0;
+    console.log(cohorts.length);
+    for (let i=0; i<cohorts.length;i++){
+        let cohort_id = cohorts[i].id.toString();
+        let checkbox_id = 'check-'.concat(cohort_id);
+        let checkbox = document.getElementById(checkbox_id);
+        if (checkbox.checked === true){
+            count += 1;
+            break;
+        }
+    }
+    let selected = count;
+    if (first_name !== '' && last_name !== '' && username !== ''
+        && email !== '' && password1 !== '' && password2 !== ''
+        && study_field !== '') {
+        if (password1 === password2) {
+            if (selected === 0){
+                alert('You must select at least one cohort');
+                // document.getElementById('banner').innerHTML = 'You must select at least one cohort';
+            }else{
+                 document.getElementById('msform').submit();
+            }
+        }else{
+            alert('Passwords do not match');
+            // document.getElementById('banner').innerHTML = 'Passwords do not match';
+        }
+    } else {
+        alert('Blank fields detected. Please fill in all required fields');
+        // document.getElementById('banner').innerHTML = 'Blank fields detected!';
+        // document.getElementById('banner').style.
+    }
+}
 

@@ -51,8 +51,13 @@
         </ul>
     </div>
     <ul class='navbar-right hidden-sm hidden-xs'>
-        <li><a href="#" onclick="openNav()"><img src="{% static 'images/avatar.jpeg' %}" class="img-fluid" alt=""/> John
-            YK</a></li>
+        <li><a href="#" onclick="openNav()">
+            {% if user.userprofile.profile_photo %}
+                 <img src="{{ user.userprofile.profile_photo.url }}" class="img-fluid profile-image" alt=""/>
+            {% else %}
+                <img src="{% static 'accounts/images/default_profile_pic.png' %}" class="img-fluid profile-image" alt=""/>
+            {% endif %}
+            {{ user.first_name }} {{ user.last_name  }}</a></li>
     </ul>
 </nav>
 <!--User details sidenav-->
@@ -63,8 +68,8 @@
     <a href="#">Change Password</a>
     <a href="#">Switch Account</a>
     <a href="javascript:{document.getElementById('logout_form').submit();}" id="logout">Sign Out</a>
-    <form id="logout_form" method="post" action="#">
-        <!--{% csrf_token %}-->
+    <form id="logout_form" method="post" action="{% url 'accounts:logout' %}">
+      {% csrf_token %}
         <input type="hidden"/>
     </form>
     <div class="danger-zone">

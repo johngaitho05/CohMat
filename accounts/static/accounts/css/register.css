@@ -17,6 +17,12 @@ body {
     background: 
         rgba(107, 162, 162, 0.73)
 }
+.row{
+    margin:0 !important;
+}
+#banner{
+    color:#c0392b;
+}
 /*form styles*/
 .msform {
 /*    width: 100%;*/
@@ -198,19 +204,35 @@ h5{
 .media{
     padding: 0;
 }
-.cohort-logo{
-    width: 45%;
-    height: 100%;
-}
 .cohort-item{
-    border:1px solid rgba(0,0,0,.125); 
+    /*text-align: left !important;*/
+    border:1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 2px 2px 4px 4px rgba(0, 0, 0, 0.12);
     color: #4CAF50;
     border-radius: 3px;
     cursor: pointer;
-    max-width: 200px
+    max-width: 300px
 }
-.cohort-info{
-    margin-top: 10px;
+.cohort-item img{
+    max-height: 200px;
+}
+.cohort-item h4{
+    color:black
+}
+.bottom-card-info{
+    margin-left: 10px;
+    padding: 10px;
+}
+.group-info{
+    padding: 10px;
+    margin-bottom: 0;
+}
+.group-info p{
+    margin-bottom: 0;
+}
+
+.sub-column{
+    padding:0;
 }
 .group_data{
     color:#0069d9;
@@ -239,7 +261,17 @@ h5{
     padding-top: 20px;
 }
 
+#imagePreview{
+    background-image: url(../images/default_profile_pic.png);
+}
 
-
+.card-selector{
+    position:absolute !important;
+    bottom: 0;
+    margin: 0 !important;
+    width:20px !important;
+    height:20px !important;
+    left:0;
+}
 
 

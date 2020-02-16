@@ -20,7 +20,7 @@
                     {% endif %}
                     <a class="nav-item nav-link active" href="#">Edit Account</a>
                     <a class="nav-item nav-link " href="javascript:{document.getElementById('logout').submit();}">Logout</a>
-                    <form id="logout" method="post" action="{% url 'logout' %}">
+                    <form id="logout" method="post" action="{% url 'accounts:logout' %}">
                         {% csrf_token %}
                         <input type="hidden"/>
                     </form>

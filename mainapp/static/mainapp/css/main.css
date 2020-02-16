@@ -72,7 +72,7 @@ body{
     margin-top: 0;
 }
 
-.navbar-right img{
+.profile-image{
     width: 30px;
     height:30px;
     border-radius: 50px;
@@ -94,6 +94,9 @@ body{
 #main-row{
     padding: 8px;
     margin: 0 10px 10px 10px;
+}
+#page-heading{
+    margin-top: 0;
 }
 
 .recommended-groups{
@@ -192,6 +195,10 @@ body{
     font-size:17px;
     color:#007bff;
 }
+/*#quick-chat-panel{*/
+/*    margin-left: 20px;*/
+/*}*/
+
 #quick-chat-panel th, #quick-chat-panel td{
     width: 20%;
         
@@ -242,6 +249,52 @@ body{
     background: #007bff;
 }
 
+.group-item, .notification-item, .message-item{
+    border: 1px solid rgba(0,0,0,.125);
+    padding: 5px;
+    text-align: justify;
+
+}
+.notification-item:hover{
+    cursor: pointer;
+    background: lightgray;
+}
+
+.notification-time{
+    font-family: cursive;
+}
+.message-item img, .message-item h5, .message-item .message-time{
+    display: inline;
+}
+.message-item{
+    cursor: pointer;
+}
+.message-item .last-text{
+    margin-left: 35px;
+}
+
+.message-item .message-time, .message-item .badge{
+    margin-right: 20px;
+}
+
+.message-item .badge{
+    background: lightgreen;
+    border-radius: 50px;
+    white-space: nowrap;
+}
+.message-item .contact-name{
+    font-weight: 700;
+}
+
+.section-container{
+    margin-right: 20px;
+}
+
+
+
+
+
+
 
 /*##############################################################*/
 
@@ -270,6 +323,9 @@ body{
     .navbar-right{
         margin-right: 20px ! important;
         margin-top: 10px;
+    }
+    #join-btn{
+        margin-top: 50px;
     }
 }
 
