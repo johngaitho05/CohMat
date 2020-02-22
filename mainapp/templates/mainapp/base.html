@@ -5,13 +5,14 @@
     <title>Cohmat Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}" />
     <link rel="stylesheet" href="{% static 'mainapp/css/main.css' %}"/>
 </head>
 <body id="body">
 <!--Navigation bar-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#"><img class="img-fluid" src="{% static 'images/cohmat_home_logo.PNG' %}"
+    <a class="navbar-brand" href="{% url 'mainapp:homeView' %}"><img class="img-fluid" src="{% static 'images/cohmat_home_logo.PNG' %}"
                                           alt="CohMat"/></a>
     <button class="navbar-toggler pull-right" type="button" data-toggle="collapse" data-target="#navbarItems"
             aria-controls="navbarItems" aria-label="Toggle navigation">
@@ -142,15 +143,10 @@
         </div>
     </div>
 </div>
-    <script type="text/javascript" src="{% static 'mainapp/js/main.js' %}"></script>
     <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            styleactivelink('{{ active_link }}')
-        });
-    </script>
+    <script type="text/javascript" src="{% static 'mainapp/js/main.js' %}"></script>
+
 </body>
 </html>

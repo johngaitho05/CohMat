@@ -1,9 +1,9 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
-
+from django.views.decorators.csrf import csrf_exempt
 from chat.views import add_chat_rooms
 from .models import *
 from mainapp.models import *
@@ -14,6 +14,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.core.mail import EmailMessage
+from django.utils.safestring import mark_safe
+from django.http import JsonResponse
 
 
 def anonymous_required(function=None, redirect_url=None):
@@ -33,7 +35,7 @@ def anonymous_required(function=None, redirect_url=None):
 @anonymous_required
 def register_view(request):
     cohorts = Cohort.objects.all()
-    study_fields = Cohort.objects.filter(parent_group=0)
+    study_fields = Cohort.objects.filter(level=0)
     if request.method == 'POST':
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
@@ -42,7 +44,7 @@ def register_view(request):
         study_field = request.POST['study_field']
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
-        groups = request.POST.getlist('to_join')
+        groups = request.POST['selected_cohorts']
         if first_name and last_name and username and email and study_field and pass1 and pass2 and groups:
             if pass1 == pass2:
                 try:
@@ -64,11 +66,11 @@ def register_view(request):
                         new_user.save()
                         # add channels through which user can chat one-on-one with each member
                         add_chat_rooms(new_user)
-                        try :
+                        try:
                             profile_photo = request.FILES['profile_photo']
                             create_profile(new_user, study_field, groups, profile_photo)
                         except MultiValueDictKeyError:
-                            create_profile(new_user, study_field, groups)
+                            create_profile(new_user, study_field, create_groups_list(groups))
                         current_site = get_current_site(request)
                         email_subject = 'Activate Your Account'
                         message = render_to_string('accounts/acc_active_email.html', {
@@ -113,7 +115,7 @@ def create_profile(user, study_field, groups, profile_photo=None):
         handle_uploaded_file(profile_photo, 'profile_photos')
         new_profile = UserProfile(user=user, profile_photo='profile_photos'
                                                            + '/' + profile_photo.name, study_field=study_field,
-                                                           user_groups=groups
+                                  user_groups=groups
                                   )
     else:
         new_profile = UserProfile(user=user, study_field=study_field, user_groups=groups)
@@ -147,5 +149,44 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
         return redirect('mainapp:homeView')
+
+
+# groups to recommend during registration based on the study_field chosen
+@csrf_exempt
+def get_subcohorts(request):
+    if request.is_ajax():
+        try:
+            coh_id = request.POST['coh_id']
+            cohort = Cohort.objects.get(id=coh_id)
+        except Cohort.DoesNotExist:
+            raise Http404("No cohort matches the given query.")
+        subcohorts = cohort.get_descendants(include_self=True)
+        cohorts_list = []
+        index = 0
+        for cohort in subcohorts:
+            cohorts_list.append(cohort_to_json(cohort))
+        subcohorts = cohorts_list
+        return JsonResponse(subcohorts, safe=False)
+    else:
+        raise Http404("Request is not ajax")
+
+
+def cohort_to_json(cohort):
+    return {
+        'id':cohort.id,
+        'title':cohort.title,
+        'logo':cohort.logo.url,
+        'no_of_members':cohort.no_of_members,
+        'total_posts':cohort.total_posts,
+        'date_created':str(cohort.date_created)
+    }
+
+
+def create_groups_list(user_array):
+    groups_list = user_array.split(',')
+    print(groups_list)
+    groups_list.pop()
+    print(groups_list)
+    return groups_list
 
 

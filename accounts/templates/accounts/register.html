@@ -7,6 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans|Patua+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'accounts/css/register.css' %}" >
 </head>
 <body>
@@ -22,8 +23,8 @@
             <h3 id="banner">{{ error_message }}</h3>
             <!--fieldsets-->
             <fieldset>
-                <h2 class="fs-title">Create your account</h2>
-                <h3 class="fs-subtitle">This is step 1</h3>
+                <h2 class="fs-title fieldset-header">Create your account</h2>
+                <h3 class="fs-subtitle fieldset-subheader">This is step 1</h3>
                 <input type="text" name="email" id="email" placeholder="Your School Email" />
                 <input type="text" name="username" id="username" placeholder="Username" />
                 <input type="password" name="password1" id="password1" placeholder="Password" />
@@ -31,8 +32,8 @@
                 <input type="button" name="next" class="next action-button" value="Next" />
             </fieldset>
             <fieldset id="profile_details">
-                <h2 class="fs-title">Build your profile</h2>
-                <h3 class="fs-subtitle">Help other CohMat members know more about you</h3>
+                <h2 class="fs-title fieldset-header">Build your profile</h2>
+                <h3 class="fs-subtitle fieldset-subheader">Help other CohMat members know more about you</h3>
                 <div class="avatar-upload">
                     <div class="avatar-edit">
                         <input type='file' name="profile_photo" id="imageUpload" accept=".png, .jpg, .jpeg" />
@@ -62,39 +63,26 @@
             </fieldset>
 
             <fieldset class="cohort_list">
-                <h2 class="fs-title">Find your community</h2>
-                <h3 class="fs-subtitle">Select at least one cohort that you'd like to join</h3>
+                <div class="cohort-loaders">
+                    <p><input type="hidden" id="left-count" value=""/>
+                        <i class="fas fa-caret-left" id="load_previous" onclick="load_cohorts('left')">
+                        </i>
+                    </p>
+                    <p><input type="hidden" id="right-count" value=""/>
+                        <i class="fas fa-caret-right" id="load_next" onclick="load_cohorts('right')"></i>
+                    </p>
+                </div>
+                <h2 class="fs-title fieldset-header">Find your community</h2>
+                <h3 class="fs-subtitle fieldset-subheader">Select at least one cohort that you'd like to join</h3>
                 <br />
-                <div class="row">
-                    {% for cohort in cohorts %}
-                        <div class="col-md-4 col-sm-6">
-                            <div class="card cohort-item" id="{{ cohort.id }}" onclick="selectCard('{{ cohort.id }}')">
-                                <img src="{{ cohort.logo.url }}" alt="Group logo"/>
-                                <div class="group-info">
-                                    <h4>{{ cohort.title }}</h4>
-                                    <div class="row">
-                                        <div class="col-sm-6 sub-column">
-                                            <p><i class="fas fa-calendar"></i><span> Date Created</span><br/><span class="group_data">{{ cohort.date_created }}</span></p>
-                                        </div>
-                                        <div class="col-sm-6 sub-column">
-                                            <p><i class="fas fa-users"></i><span> Members</span><br/><span class="group_data">{{ cohort.no_of_members }}</span></p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-lg-12 text-center">
-                                        <p><i class="far fa-address-book"></i><span> Total posts</span><br/><span class="group_data">{{ cohort.total_posts }}</span></p>
-                                    </div>
-                                    <input class="card-selector"  type="checkbox" id="check-{{ cohort.id }}" name="to_join"  value="{{ cohort.id }}"/>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
+                <div class="row" id="to_join_container">
+
                 </div>
                 <br />
                 <input type="button" name="back" class="previous action-button" value="Back" />
-                <input type="button" onclick="submitRegForm()"  name="submit_button"  class="submit action-button" value="Submit" />
+                <input type="button" onclick="return submitRegForm();"  name="submit_button"  class="submit action-button" value="Submit" />
             </fieldset>
+            <input type="hidden" id="selected_cohorts" value="" name="selected_cohorts"/>
         </form>
     </div>
 </div>

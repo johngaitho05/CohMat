@@ -68,10 +68,6 @@ body{
     border-style:none ! important;
 }
 
-.navbar btn-primary{
-    margin-top: 0;
-}
-
 .profile-image{
     width: 30px;
     height:30px;
@@ -99,31 +95,24 @@ body{
     margin-top: 0;
 }
 
-.recommended-groups{
+#recommended-groups{
     padding:0 5px;
-    
+    /*margin-top: 50px;*/
+
 }
-.recommended-groups li{
-    list-style:none;
-    
+#recommended-groups-container li{
+    list-style: none;
 }
-.recommended-groups a, .recommended-groups p{
+#join-recommended{
+    display: block;
+    position: absolute;
+    top: -100px;
+    opacity:0;
+
+}
+#recommended-groups a, #recommended-groups p{
     color: #269abc;
     display: inline;
-}
-.recommended-groups .fa-plus, .fa-minus{
-    width:15px;
-    height: 15px;
-    color:white;
-    background: #269abc;
-    border-radius: 50px;
-}
-.recommended-groups .fa-plus:hover, .fa-minus:hover{
-    background:#007bff; 
-}
-.recommended-groups a:hover{
-    text-decoration: none;
-    color:#007bff;
 }
 .btn-outline-primary{
     border: 1px solid #007bff !important;

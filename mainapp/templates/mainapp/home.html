@@ -1,32 +1,24 @@
 {% extends 'mainapp/base.html' %}
 {% load static %}
+{% load mptt_tags %}
 
 {% block body %}
     <!--Recommendable groups pane-->
     <div class="col-md-3 column hidden-sm hidden-xs" id="recommended-groups-container">
         <p class="column-title">Groups you may like</p>
-        <div id="accordion" class="panel-group">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <ul class='recommended-groups'>
-                        <li class="panel-title">
-                            <a href="#panelBodyOne" data-toggle="collapse" id='group_id' data-parent="#accordion">
-                                <i class="fas-icon fas fa-plus"></i></a>
-                            <p><label for="cohort-id">Python Programming</label></p><input class="coh-check pull-right" type="checkbox" id="cohort-id"/>
-                        </li>
-                    </ul>
-                </div>
-                <div id="panelBodyOne" class="panel-collapse collapse">
-                    <div class="panel-body">
-                        <ul>
-                            <li>India</li>
-                            <li>China</li>
-                            <li>Japan</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <form method="post" action="{% url 'mainapp:join' %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-primary" type="submit" id="join-recommended">Join Selected</button>
+            <h4 id="join-help">Select a group to join</h4>
+            <ul id="recommended-groups">
+                {% for cohort in to_recommend %}
+                    <li class="panel-title">
+                        <input class="coh-checker" name="to_join" onclick="styleJoinButton()" value="{{ cohort.id }}" type="checkbox"/>
+                        <p>{{ cohort }}</p>
+                    </li><br/>
+                {% endfor %}
+            </ul>
+        </form>
     </div>
 
     <!--News feed pane-->
@@ -53,4 +45,53 @@
             </ul>
         </div>
     </div>
+    <script>
+        $(document).ready(function() {
+            document.getElementById("home_link").classList.add('active');
+        });
+    </script>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{#        <ul >#}
+{#            {% recursetree to_recommend %}#}
+{#                <li>#}
+{#                    <div id="accordion" class="panel-group">#}
+{#                        <div class="panel panel-primary">#}
+{#                            <div class="panel-heading">#}
+{#                                <ul class='recommended-groups'>#}
+{#                                    <li class="panel-title">#}
+{#                                        <a href="#{{node.id}}" data-toggle="collapse" id='group_id' data-parent="#accordion">#}
+{#                                            <i class="fas-icon fas fa-plus"></i></a>#}
+{#                                        <p><label for="check-{{node.id}}">{{node.title}}</label></p>#}
+{#                                        <input class="coh-check pull-right" value="{{ node.id }}" type="checkbox" id="check-{{node.id}}"/>#}
+{#                                    </li>#}
+{#                                </ul>#}
+{#                            </div>#}
+{#                            {% if not node.is_leaf_node %}#}
+{#                                <div id="{{ node.id }}" class="panel-collapse collapse">#}
+{#                                    <div class="panel-body">#}
+{#                                        <ul class="children">#}
+{#                                            {{ children }}#}
+{#                                        </ul>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </li>#}
+{#            {% endrecursetree %}#}
+{#        </ul>#}

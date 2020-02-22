@@ -4,9 +4,9 @@
  * and open the template in the editor.
  */
 
-$(document).on('click', '.fas-icon', function() {
-    $(this).toggleClass('fa-plus fa-minus');
-});
+// $(document).on('click', '.fas-icon', function() {
+//     $(this).toggleClass('fa-plus fa-minus');
+// });
 
 /* Set the width of the side navigation to 30% */
 function openNav() {
@@ -21,13 +21,25 @@ function closeNav() {
     document.getElementById("reservationnav").style.width = "0";
 }
 
-
-function styleactivelink(link_id) {
-    let navlinks = document.getElementsByClassName('nav-link');
-    for(let i=0; i< navlinks.length; i++) {
-        navlinks[i].classList.remove('active');
+function styleJoinButton(){
+    let checked_boxes = 0;
+    let checkboxes = document.getElementsByClassName('coh-checker');
+    let button = document.getElementById('join-recommended');
+    let container = document.getElementById('recommended-groups');
+    for(let i=0; i< checkboxes.length; i++) {
+        if (checkboxes[i].checked === true){
+            checked_boxes += 1
+        }
     }
-    let to_style = document.getElementById(link_id);
-    to_style.classList.add('active');
+    if (checked_boxes === 0){
+        document.getElementById('join-help').innerHTML = "Select a group to join";
+        $("#join-recommended").css({"opacity":"0","margin-top":"30px"});
+        $("#recommended-groups").css({"margin-top":"0"});
+    }
+    else if(checked_boxes === 1){
+        document.getElementById('join-help').innerHTML = "";
+       $("#join-recommended").css({"opacity":"1","margin-top":"160px"});
+        $("#recommended-groups").css({"margin-top":"50px"});
+    }
 }
 
