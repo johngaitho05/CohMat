@@ -1,4 +1,4 @@
-from Sorting.Sorting import *
+from data_structures.Sorting.Sorting import *
 
 
 def linear_search(search_value, a):

@@ -284,16 +284,21 @@ h5{
     background-image: url(../images/default_profile_pic.png);
 }
 
-.card-selector{
-    /*position:absolute !important;*/
-    /*bottom: 0;*/
-    /*margin: 0 !important;*/
-    /*width:20px !important;*/
-    /*height:20px !important;*/
-    /*left:0;*/
-    opacity:0;
+#login-button{
+position: fixed;
+    top: 20px;
+    right:30px;
+    color: #006df3;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-family: "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier, monospace;
+    font-weight: 600;
 }
 
+.card-selector{
+    position:fixed;
+    top:-99999px;
+}
 
 
 

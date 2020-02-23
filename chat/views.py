@@ -1,100 +1,34 @@
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Contact, Message, ChatRoom
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-import operator
+import random
+from data_structures.Hashing.HashTable import HashTable
+from data_structures.LinkedLists.DoublyLinkedList import DoublyLinkedList
 from datetime import date, datetime
 from django.utils.safestring import mark_safe
 import json
 
 
 @login_required
-def show_contacts(request):
-    contacts = get_contacts(request.user)
-    if not contacts[0]:
+def contacts_view(request):
+    chatrooms = contacts_view_extension(request.user)
+    if not chatrooms[0]:
         return render(request, 'chat/home.html',
-                      {'count': contacts[1], 'message': 'You have not added any contact'})
+                      {'count': chatrooms[1], 'message': 'You have not added any contact'})
     else:
         return render(request, 'chat/home.html',
-                      {'count': contacts[1], 'contacts': contacts[0]})
-
-
-@login_required
-def add_contact(request):
-    contacts = get_contacts(request.user)
-    if request.method == 'GET':
-        phone_number = request.GET['phone_number']
-        if not contacts[0]:
-            if phone_number:
-                return render(request, 'chat/home.html',
-                              {'count': '0 chat', 'message':
-                                  'You have not added any contact', 'add': 'yes','phone_number':phone_number})
-            return render(request, 'chat/home.html',
-                          {'count': '0 chat', 'message': 'You have not added any contact', 'add': 'yes'})
-        if phone_number:
-            return render(request, 'chat/home.html',
-                          {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes','phone_number':phone_number})
-        return render(request, 'chat/home.html',
-                  {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes',})
-    elif request.method == 'POST':
-        user = request.user
-        name = request.POST['name']
-        phone = request.POST['phone']
-        if name and phone:
-            try:
-                new_user = User.objects.get(username=phone)
-                if new_user == user:
-                    return render(request, 'chat/home.html',
-                                  {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes',
-                                   'error': "You can't add your own number to contacts"})
-                else:
-                    try:
-                        contact = Contact.objects.get(phone=phone, user=user)
-                        if contact.name != contact.phone:
-                            return render(request, 'chat/home.html',
-                                      {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes',
-                                       'error': 'That number already exists in your contacts', })
-                        else:
-                            contact.name = name
-                            contact.save()
-                            contacts = get_contacts(request.user)
-                            return render(request, 'chat/home.html',
-                                          {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes'})
-
-                    except Contact.DoesNotExist:
-                        new_contact = Contact(user=user, phone=phone, name=name)
-                        new_contact.save()
-                        contacts = get_contacts(request.user)
-                        return render(request, 'chat/home.html',
-                                      {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes'})
-
-            except User.DoesNotExist:
-                return render(request, 'chat/home.html',
-                              {'count': contacts[1], 'contacts': contacts[0], 'add': 'yes',
-                               'error': 'Number not registered with smartchat'})
-
-        else:
-            return render(request, 'chat/home.html',
-                      {'count': contacts[1], 'contacts': contacts[0],
-                       'add': 'yes', 'error': 'All fields are required'})
-
-
-def delete_contact(request):
-    pass
-
-
-def update_contact(request):
-    pass
+                      {'count': chatrooms[1], 'contacts': chatrooms[0]})
 
 
 @login_required
 def chat(request, room_name):
-    today= date.strftime(date.today(), "%Y-%m-%d")
+    today = date.strftime(date.today(), "%Y-%m-%d")
     room_to_json = mark_safe(json.dumps(room_name))
     username_json = mark_safe(json.dumps(request.user.username))
-    active_contact = get_object_or_404(Contact, user=request.user,
-                                       phone=get_active_contact_username(request.user.id, room_name))
+    active_contact = get_active_contact(request.user.id, room_name)
     texts = Message.objects.filter(chat_room=room_name).order_by('-timestamp')
     texts_list = get_texts(texts)
     chat_list = get_chat_list(request.user)
@@ -127,37 +61,50 @@ def home(request):
         return render(request, 'chat/home.html', {'recents': 'Null'})
 
 
-def get_contacts(user):
-    all_contacts = Contact.objects.filter(user=user)
-    saved_contacts = []
-    for contact in all_contacts:
-        if contact.name != contact.phone:
-            saved_contacts.append(contact)
-    if len(saved_contacts) == 1:
-        num = '1 contact'
+def contacts_view_extension(user):
+    contacts = get_contacts(user)
+    count = len(contacts)
+    if count > 100:
+        count = '99+ Contacts'
+        contacts = contacts[0:100]
+    elif count == 1:
+        count = '1 Contact'
     else:
-        num = str(len(saved_contacts)) + ' contacts'
+        count = str(count) + 'Contacts'
+    return [get_chat_rooms(contacts, user), count]
 
-    user_contacts = [contact for contact in saved_contacts]
-    return [get_chat_rooms(user_contacts, user), num]
+
+# return a list of ids for those users that qualify to be in the user contacts
+def get_contacts(user):
+    to_compare = HashTable(27, user.userprofile.user_groups)
+    other_users = User.objects.exclude(id=user.id)
+    contacts = DoublyLinkedList()
+    for user in other_users:
+        user_groups = user.userprofile.user_groups
+        for i in range(len(user_groups)):
+            if to_compare.search(user_groups[i]) is not None:
+                break
+        contacts.insert_at_end(user.id)
+    return contacts.display_list()
 
 
 # returns a list of recent chats to display on the homepage
 def get_chat_list(user):
-    contacts = Contact.objects.filter(user=user)
+    contacts = get_contacts(user)
     contacts_list = [contact for contact in contacts]
     if len(contacts_list) > 0:
         chat_list = []
         for contact in contacts:
-            room = get_chat_room(contact, user)
-            if room.last_message.author.username != 'johnyk':
-                chat_list.append((contact, room, formatted_text(room.last_message.content)))
+            room = get_chat_room(contact, user.id)
+            if room.last_message.author.username != get_default_last_message():
+                chat_list.append((User.objects.get(id=contact), room, formatted_text(room.last_message.content)))
         if len(chat_list) == 0:
             return
         return chat_list
     return
 
 
+# takes te last message of a given chatroom and returns the first 40 characters if the text length exceeds 40
 def formatted_text(text):
     if len(text) > 40:
         return text[:40] + '...'
@@ -165,56 +112,59 @@ def formatted_text(text):
         return text
 
 
+# called when a new user registers to create chatrooms through which the user can chat with other members
 def add_chat_rooms(current_user):
-    all_users = User.objects.all()
-    other_users = all_users.exclude(id=current_user.id).exclude(username='johnyk')
-    for user in other_users:
+    users = User.objects.all()
+    for user in users:
         new_room = str(user.id) + 'A' + str(current_user.id)
-        ChatRoom.objects.create(name=new_room,last_message=get_default_last_message())
+        ChatRoom.objects.create(name=new_room, last_message=get_default_last_message())
 
 
 def get_chat_rooms(contacts, user):
     chat_rooms = []
     for contact in contacts:
-        room = get_chat_room(contact, user)
-        chat_rooms.append((contact, room))
+        room = get_chat_room(contact, user.id)
+        chat_rooms.append((User.objects.get(id=contact), room))
     return chat_rooms
 
 
-def get_chat_room(contact, user):
-    contact_owner = User.objects.get(username=contact.phone)
-    if contact_owner.id < user.id:
-        room_name = str(contact_owner.id) + 'A' + str(user.id)
+def get_chat_room(contact_id, user_id):
+
+    if contact_id < user_id:
+        room_name = str(contact_id) + 'A' + str(user_id)
     else:
-        room_name = str(user.id) + 'A' + str(contact_owner.id)
+        room_name = str(user_id) + 'A' + str(contact_id)
     try:
         room = ChatRoom.objects.get(name=room_name)
     except ChatRoom.DoesNotExist:
         chatroom_messages = Message.objects.filter(chat_room=room_name).order_by('-timestamp')
         if chatroom_messages:
             messages_list = [message for message in chatroom_messages]
-            room = ChatRoom.objects.create(name=room_name,last_message=messages_list[0])
+            room = ChatRoom.objects.create(name=room_name, last_message=messages_list[0])
         else:
             room = ChatRoom.objects.create(name=room_name, last_message=get_default_last_message())
     return room
 
 
-def get_active_contact_username(user_id, chat_room):
+def get_active_contact(user_id, chat_room):
     active_contact_id = get_active_contact_id(user_id, chat_room)
-    active_contact_username = get_object_or_404(User, id=active_contact_id).username
-    return active_contact_username
+    active_contact = get_object_or_404(User, id=active_contact_id)
+    return active_contact
 
 
 def get_active_contact_id(user_id, chat_room):
     id_list = chat_room.split('A')
+    print(id_list)
+    print(user_id)
     if int(id_list[0]) == user_id:
         return int(id_list[1])
     elif int(id_list[1]) == user_id:
-         return int(id_list[0])
+        return int(id_list[0])
     else:
-        get_object_or_404(User, id=-1)
+        return -1
 
 
+# updates the last message every time the text is sent to a given chatroom
 def update_last_message(chat_room, message):
     current_room = ChatRoom.objects.get(name=str(chat_room))
     current_room.last_message = message
@@ -237,19 +187,6 @@ def get_texts(messages):
     return texts_list
 
 
-def update_receiver_contacts(user, chat_room):
-    phone = get_active_contact_username(user.id,chat_room)
-    receiver = User.objects.get(username=phone)
-    try:
-        Contact.objects.get(user=receiver,phone=user.username)
-    except Contact.DoesNotExist:
-        Contact.objects.create(user=receiver,phone=user.username,name=user.username)
-
-
-def get_current_time():
-    pass
-
-
 def get_default_last_message():
-    user = User.objects.get(username = 'johnyk')
-    return Message.objects.get(author=user)
+    user = User.objects.get(username='johnyk')
+    return Message.objects.filter(author=user)[:1].get()

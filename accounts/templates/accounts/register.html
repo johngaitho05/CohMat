@@ -12,6 +12,7 @@
 </head>
 <body>
 <div class="row">
+    <a id="login-button"  href="{% url 'accounts:login' %}">Login</a>
     <div class="col-md-8 offset-md-2" id="page_wrapper">
         <form id="msform" action="{% url 'accounts:register' %}" class="msform" method="post" enctype="multipart/form-data">
             {% csrf_token %}
@@ -51,13 +52,15 @@
                     <div class="col-sm-6">
                         <input type="text" name="last_name" id="last_name" placeholder="Last Name"/>
                     </div>
+                    <div class="col-lg-12">
+                        <label id="study_field_label" for="study_field">Select your field of study</label>
+                        <select name="study_field" id="study_field">
+                            {% for field in study_fields %}
+                                <option value="{{ field.id }}">{{field.title}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <label id="study_field_label" for="study_field">Field of study</label>
-                <select name="study_field" id="study_field">
-                    {% for field in study_fields %}
-                        <option value="{{ field.id }}">{{field.title}}</option>
-                    {% endfor %}
-                </select>
                 <input type="button" name="back" class="previous action-button" value="Back"/>
                 <input type="button" name="next" class="next action-button" value="Next" />
             </fieldset>
@@ -76,7 +79,7 @@
                 <h3 class="fs-subtitle fieldset-subheader">Select at least one cohort that you'd like to join</h3>
                 <br />
                 <div class="row" id="to_join_container">
-
+{#                    cohorts goes here#}
                 </div>
                 <br />
                 <input type="button" name="back" class="previous action-button" value="Back" />

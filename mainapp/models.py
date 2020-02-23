@@ -14,6 +14,7 @@ class Cohort(MPTTModel):
     date_created = models.DateField(auto_now_add=True)
     no_of_members = models.IntegerField(default=0)
     total_posts = models.IntegerField(default=0)
+
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class MPTTMeta:

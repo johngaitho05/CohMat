@@ -128,16 +128,13 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% for user, chatroom in contacts %}
                 <tr>
-                    <td>Steve Jnr</td>
-                    <td>Python</td>
-                    <td><a href="#" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                    <td>{{user.first_name}} {{ user.last_name }}</td>
+                    <td>{{user.userprofile.current_interest}}</td>
+                    <td><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
                 </tr>
-                <tr>
-                    <td>Paul Korley</td>
-                    <td>Html</td>
-                    <td><a href="#" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
-                </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>

@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import *
-from sqlparse.engine.grouping import group_aliased
+from chat.views import get_contacts, get_chat_rooms
 
 from .models import Cohort, Question, Notification, Answer, Reply
 from accounts.models import UserProfile
@@ -18,9 +18,11 @@ class HomeView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
+        data = get_user_data(self.request.user)
         context.update({
-            'to_recommend': user_data(self.request.user)[0],
-            'connected_people_list': user_data(self.request.user)[1]
+            'to_recommend': data[0],
+            'connected_people_list': data[1],
+            'contacts': data[2]
         })
         return context
 
@@ -43,7 +45,9 @@ def notificationsView(request):
     return render(request, 'mainapp/notifications.html', {'active_link': 'notifications_link'})
 
 
-def user_data(user):
+def get_user_data(user):
+    contacts_ids = get_contacts(user)
+    contacts = get_chat_rooms(contacts_ids,user)
     user_cohorts = user.userprofile.user_groups
     user_cohorts = [Cohort.objects.get(id=cohort) for cohort in user_cohorts]
     leaf_cohort = Cohort.objects.get(id=user.userprofile.study_field)
@@ -53,24 +57,29 @@ def user_data(user):
         if cohort not in user_cohorts:
             to_recommend.append(cohort)
     to_recommend = to_recommend
-    return [to_recommend, User.objects.all()]
+    return [to_recommend, User.objects.all(),contacts]
 
 
 @login_required
-def join_groups(request):
+def join_groups(request,):
     if request.method == 'POST':
         if request.POST.getlist('to_join'):
+            to_join = [int(group_id) for group_id in request.POST.getlist('to_join')]
             user_groups = request.user.userprofile.user_groups
-            to_join = request.POST.getlist('to_join')
             for group_id in to_join:
-                user_groups.append(int(group_id))
+                user_groups.append(group_id)
             new_user_groups_list = user_groups
             user_profile = UserProfile.objects.get(user=request.user)
             user_profile.user_groups = new_user_groups_list
             user_profile.save()
+            for group_id in to_join:
+                group = get_object_or_404(Cohort, id=group_id)
+                group.no_of_members = group.no_of_members+1
+                group.save()
+
             return render(request, 'mainapp/home.html',{
-                'to_recommend': user_data(request.user)[0],
-                'connected_people_list': user_data(request.user)[1],
+                'to_recommend': get_user_data(request.user)[0],
+                'connected_people_list': get_user_data(request.user)[1],
                 'message': 'You have successfully joined the selected groups'
             })
 

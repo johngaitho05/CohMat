@@ -8,8 +8,7 @@ User = get_user_model()
 
 class Contact(models.Model):
     user = models.ForeignKey(User, related_name="user_contacts",on_delete=models.CASCADE)
-    phone = models.CharField(max_length=20)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name

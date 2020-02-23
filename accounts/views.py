@@ -64,13 +64,14 @@ def register_view(request):
                         new_user.set_password(pass1)
                         new_user.is_active = False
                         new_user.save()
-                        # add channels through which user can chat one-on-one with each member
-                        add_chat_rooms(new_user)
+                        # create user profile
                         try:
                             profile_photo = request.FILES['profile_photo']
-                            create_profile(new_user, study_field, groups, profile_photo)
+                            create_profile(new_user, study_field, create_groups_list(groups), profile_photo)
                         except MultiValueDictKeyError:
                             create_profile(new_user, study_field, create_groups_list(groups))
+                        # add channels through which user can chat one-on-one with each member
+                        add_chat_rooms(new_user)
                         current_site = get_current_site(request)
                         email_subject = 'Activate Your Account'
                         message = render_to_string('accounts/acc_active_email.html', {
@@ -184,9 +185,7 @@ def cohort_to_json(cohort):
 
 def create_groups_list(user_array):
     groups_list = user_array.split(',')
-    print(groups_list)
     groups_list.pop()
-    print(groups_list)
     return groups_list
 
 
