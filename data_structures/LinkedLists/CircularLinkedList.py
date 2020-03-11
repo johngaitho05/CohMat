@@ -124,6 +124,7 @@ class CircularLinkedList:
         self.last = list2.last
         return self
 
+
 if __name__ == '__main__':
     default_values = input('Enter a list of default values(separated '
                            'by commas) or press enter to initialize an empty list: ')

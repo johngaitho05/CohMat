@@ -1,0 +1,199 @@
+
+body{
+    padding: 10px;
+}
+#home_btn{
+    box-sizing: unset;
+    margin-bottom: 5px;
+    font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+}
+#phone-panel{
+    height:100%;
+    background-color:#00968800;
+    position: absolute;
+}
+.avatar{
+    border-radius: 50%;
+    margin-left:0;
+    height:30px;
+    width:30px;
+}
+
+#user {
+    font-weight: 900;
+    color:#fff;
+    margin:0;
+    padding-left: 5px;
+    font-size: 25px;
+}
+.texts{
+    /*position: absolute;*/
+    overflow-y: scroll;
+    position:fixed;
+    top:0;
+    right:0;
+    width:75%;
+    height:100%;
+    background-color:ghostwhite;
+}
+.header{
+    position:fixed;
+    top:0;
+    width:100%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 25px;
+    background-color: #59db09;
+}
+#delete-initiator{
+    font-size: 14px;
+    font-family: "Roboto", "Lucida Grande", "DejaVu Sans", "Bitstream Vera Sans", Verdana, Arial, sans-serif;
+    position: fixed;
+    right:30px;
+    top: 10px;
+}
+#delete-initiator:hover{
+    color:blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+#delete-button{
+    position:absolute;
+    top:-9999px;
+}
+#input-message{
+    position: fixed;
+    bottom: 5px;
+    width:50%;
+    height:60px;
+    background: transparent;
+}
+#send{;
+    padding: 0;
+    height: 60px;
+    background-color: transparent;
+    border:none;
+}
+#message{
+    border-radius: 14px;
+    width: 90%;
+    height: 60px;
+    padding:20px 0 10px 5px;
+    max-height: 60px;
+}
+#pheader{
+    line-height:1px;
+}
+#phone-panel hr{
+    margin-bottom: 0;
+}
+.dp{
+    border-radius: 50%;
+    height:40px;
+    width:40px;
+}
+#phone-panel .card{
+    margin-top: 5px;
+    padding: 5px 0 15px 10px;
+    line-height: 0;
+    background-color:#05afaf;
+}
+#phone-panel .card h4{
+    color:aliceblue;
+    display: inline;
+    padding-top: 50px;
+}
+.replies{
+    width:60%;
+    background-color: #0bf3e8;
+    border-radius: 7px;
+    margin-top: 14px;
+    margin-left: 2%;
+    line-height: 1.2rem;
+    font-size: 15px;
+    padding:10px 10px 0 10px;
+}
+.sent p, .replies p{
+    text-align: justify;
+}
+.sent{
+    width:60%;
+    background-color: #d2cd6e;
+    border-radius:7px;
+    margin-top: 14px;
+    line-height: 1.2rem;
+    font-size: 15px;
+    margin-left: 38%;
+    padding:10px 10px 0 10px;
+}
+.content{
+    padding-top: 200px;
+}
+
+.contact{
+    cursor: pointer;
+}
+
+#chat_init{
+    text-decoration: none;
+}
+#activeimg{
+    margin-right: 10px;
+    margin-top: 0;
+}
+
+.time{
+    color:chocolate;
+    text-align: right !important;
+    margin-bottom: 0;
+}
+.date{
+    margin-bottom: 0.5rem;
+
+}
+#text_form{
+    padding-left: 20px;
+}
+
+#texts_section{
+    background-color: ghostwhite;
+    padding-top: 80px;
+    width: 100%;
+    height: auto;
+    min-width: available;
+    padding-bottom: 68px;
+}
+
+#active_user{
+    padding-left: 2%;
+}
+
+#active_user-panel, #add-to-contacts{
+    float:left;
+    width: 40%;
+}
+#add-to-contacts{
+    text-align: right;
+    padding-right: 7%;
+}
+
+#save_contact{
+    text-align:right !important;
+    font-size:15px;
+}
+
+.delete-reply{
+    display: inline;
+    width:14px;
+    height: 14px;
+    position: absolute;
+    top: -9999px;
+}
+.delete-sent{
+    display: inline;
+    width:14px;
+    height: 14px;
+    position: absolute;
+    top: -9999px;
+    /*margin-right: 1%;*/
+}

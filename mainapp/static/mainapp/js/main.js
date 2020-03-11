@@ -1,4 +1,4 @@
-/* 
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -16,9 +16,6 @@ function openNav() {
 /* Set the width of the side navigation to 0 */
 function closeNav() {
     document.getElementById("mySidenav").style.width = "0";
-    document.getElementById("profilenav").style.width = "0";
-    document.getElementById("passnav").style.width = "0";
-    document.getElementById("reservationnav").style.width = "0";
 }
 
 function styleJoinButton(){
@@ -43,3 +40,36 @@ function styleJoinButton(){
     }
 }
 
+function submit_question(){
+    let content = document.getElementById('question-text');
+    let group = document.getElementById('question-group');
+    let error_bar = document.getElementById('quiz-error');
+    if (content.value !== '' && group.value !== '0' ){
+        document.getElementById('question-form').submit();
+    }
+    else if(content.value === ''){
+        error_bar.innerHTML = "Content can't be empty";
+    }else{
+        error_bar.innerHTML = "Please select the target group";
+    }
+}
+
+function openAnswerInput(id){
+    let answer_input = document.getElementById('answer-input'.concat(id));
+    let send_button = document.getElementById('send-answer'.concat(id));
+    answer_input.style.width = '80%';
+    answer_input.style.height = '50px';
+    answer_input.focus();
+    answer_input.placeholder = 'Type your answer here';
+    send_button.style.opacity = 'unset';
+    send_button.style.left = '0';
+}
+
+function styleactivelink(link_id) {
+    let navlinks = document.getElementsByClassName('nav-link');
+    for (let i = 0; i < navlinks.length; i++) {
+        navlinks[i].classList.remove('active');
+        let to_style = document.getElementById(link_id);
+        to_style.classList.add('active');
+    }
+}

@@ -4,94 +4,78 @@
 
 {% block body %}
     <!--Recommendable groups pane-->
-    <div class="col-md-3 column hidden-sm hidden-xs" id="recommended-groups-container">
-        <p class="column-title">Groups you may like</p>
-        <form method="post" action="{% url 'mainapp:join' %}">
-            {% csrf_token %}
-            <button class="btn btn-outline-primary" type="submit" id="join-recommended">Join Selected</button>
-            <h4 id="join-help">Select a group to join</h4>
-            <ul id="recommended-groups">
-                {% for cohort in to_recommend %}
-                    <li class="panel-title">
-                        <input class="coh-checker" name="to_join" onclick="styleJoinButton()" value="{{ cohort.id }}" type="checkbox"/>
-                        <p>{{ cohort }}</p>
-                    </li><br/>
-                {% endfor %}
-            </ul>
-        </form>
+    <div class="col-md-3 column hidden-sm hidden-xs">
+        <div id="recommended-groups-container">
+            <p class="column-title">Groups you may like</p>
+            <form method="post" action="{% url 'mainapp:join' %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-primary" type="submit" id="join-recommended">Join Selected</button>
+                <h5 id="join-help">Select a group to join</h5>
+                <ul id="recommended-groups">
+                    {% for cohort in to_recommend %}
+                        <li class="panel-title">
+                            <input class="coh-checker" name="to_join" onclick="styleJoinButton()" value="{{ cohort.id }}" type="checkbox"/>
+                            <p>{{ cohort }}</p>
+                        </li><br/>
+                    {% endfor %}
+                </ul>
+                <input type="hidden" name="page" value="home"/>
+            </form>
+        </div>
     </div>
-
     <!--News feed pane-->
     <div class="col-md-5 column" id="news-feed">
         <p class="column-title">News feed</p>
-        <div class="card">
-            <p class="post-title">John Yk <span>></span> Django Web Framework</p>
-            <p>Lorem ipsum began as scrambled, nonsensical Latin derived from Cicero's 1st-century BC text De Finibus Bonorum et Malorum.</p>
-            <a href="#"><img class="img-fluid" src="{% static 'images/nettus.png' %}" alt="Missing Image"/></a>
-            <br />
-            <ul class="post-footer">
-                <li><a href="#"><i class="fas fa-comment"></i> 13 Answers</a></li>
-                <li class="pull-right"><a href="#">Give your answer</a></li>
-            </ul>
-        </div>
-        <div class="card">
-            <p class="post-title">Steve Jnr <span>></span> Html Programming</p>
-            <p>Lorem ipsum began as scrambled, nonsensical Latin derived from Cicero's 1st-century BC text De Finibus Bonorum et Malorum.</p>
-            <a href="#"><img class="img-fluid" src="{% static 'images/register_urls function.PNG' %}" alt="Missing Image"/></a>
-            <br />
-            <ul class="post-footer">
-                <li><a href="#"><i class="fas fa-comment"></i> 5 Answers</a></li>
-                <li class="pull-right"><a href="#">Give your answer</a></li>
-            </ul>
-        </div>
+        {% for quiz,answers in newsfeed.items %}
+            <div class="card">
+                <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}  <span>></span> {{ quiz.target_cohort }}<small class="post-time float-right">{{ quiz.time }}</small></p>
+                <p>{{quiz.content}}</p>
+                {%  if quiz.image %}
+                    <a href="{{ quiz.image.url }}"><img class="img-fluid" src="{{ quiz.image.url }}" alt="Missing Image"/></a>
+                {% endif %}
+                <br />
+                <ul class="post-footer">
+                    <li><a href="#" data-toggle="modal" data-target="#answersModal{{ quiz.id }}"><i class="fas fa-comment">
+
+                    </i> {% if quiz.total_answers == 1 %}
+                        1 Answer
+                    {% else %}
+                        {{ quiz.total_answers }} Answers
+                    {% endif %}</a></li>
+                    <li class="float-right give-answer" onclick="openAnswerInput('{{ quiz.id }}')">Give your answer</li>
+                </ul>
+                <form class="answer-form form-inline" method="post" action="{% url 'mainapp:answer_quiz' %}">
+                    {% csrf_token %}
+                    <input type="hidden" value="{{ quiz.id }}" name="question"/>
+                    <textarea  cols="10" class="answer-input" name="answer" id="answer-input{{ quiz.id }}"></textarea>
+                    <button class="btn btn-primary send-answer" id="send-answer{{ quiz.id }}" type="submit">Send</button>
+                </form>
+                <!-- Answers modal -->
+                <div class="modal fade answerModal" id="answersModal{{ quiz.id }}" tabindex="-1" role="dialog" aria-labelledby="answersModal{{ quiz.id }}Title" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title answer-heading" id="exampleModalLongTitle">Answers & comments to
+                                    <span>{{ quiz.author.first_name }}</span>'s <span>question/post</span></h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                {% for answer in answers %}
+                                    <div class="answer-item">
+                                        <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
+                                        <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
+                                        <p class="float-right answer-time">{{ answer.time }}</p>
+                                        <p class="answer-content ">{{ answer.content }}</p>
+                                        <p class="reply-trigger">Reply</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-    <script>
-        $(document).ready(function() {
-            document.getElementById("home_link").classList.add('active');
-        });
-    </script>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{#        <ul >#}
-{#            {% recursetree to_recommend %}#}
-{#                <li>#}
-{#                    <div id="accordion" class="panel-group">#}
-{#                        <div class="panel panel-primary">#}
-{#                            <div class="panel-heading">#}
-{#                                <ul class='recommended-groups'>#}
-{#                                    <li class="panel-title">#}
-{#                                        <a href="#{{node.id}}" data-toggle="collapse" id='group_id' data-parent="#accordion">#}
-{#                                            <i class="fas-icon fas fa-plus"></i></a>#}
-{#                                        <p><label for="check-{{node.id}}">{{node.title}}</label></p>#}
-{#                                        <input class="coh-check pull-right" value="{{ node.id }}" type="checkbox" id="check-{{node.id}}"/>#}
-{#                                    </li>#}
-{#                                </ul>#}
-{#                            </div>#}
-{#                            {% if not node.is_leaf_node %}#}
-{#                                <div id="{{ node.id }}" class="panel-collapse collapse">#}
-{#                                    <div class="panel-body">#}
-{#                                        <ul class="children">#}
-{#                                            {{ children }}#}
-{#                                        </ul>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            {% endif %}#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </li>#}
-{#            {% endrecursetree %}#}
-{#        </ul>#}

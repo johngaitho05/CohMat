@@ -19,8 +19,8 @@ def binary_search(search_value, a):
 
 
 def _search(a, first, last, search_value):
-    if (first > last):
-        return -1
+    if first > last:
+        return None
     mid = (first + last)//2
     if search_value > a[mid]:
         return _search(a, mid + 1, last, search_value)

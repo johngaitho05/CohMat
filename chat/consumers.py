@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from channels.generic.websocket import WebsocketConsumer
 from datetime import datetime
 import json
-from .models import Message
-from .views import update_last_message,formatted_text
+from .models import Message, ChatRoom
+from .views import update_last_message,formatted_text,other_user_party
 
 
 User = get_user_model()
@@ -35,6 +35,15 @@ class ChatConsumer(WebsocketConsumer):
         message = Message.objects.create(author=author_user,
                                          content=content, chat_room=chat_room, timestamp=current_time)
         update_last_message(chat_room, message)
+        party = other_user_party(author_user.id, chat_room)
+        print(party)
+        room = ChatRoom.objects.get(name=chat_room)
+        print(room.name)
+        if party == 'A':
+            room.unread_A += 1
+        elif party == 'B':
+            room.unread_B += 1
+        room.save()
         content = {
             'command': 'new_message',
             'message': self.message_to_json(message),

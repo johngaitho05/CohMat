@@ -29,7 +29,11 @@ class Question(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     target_cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE)
     content = models.TextField()
-    image = models.FileField(upload_to='images')
+    total_answers = models.IntegerField(default=0)
+    image = models.FileField(upload_to='images', blank=True, default='')
+
+    def __str__(self):
+        return self.author.username + ' >> ' + self.target_cohort.title
 
 
 class Notification(models.Model):
@@ -41,12 +45,14 @@ class Notification(models.Model):
 class Answer(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
 
 
 class Reply(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
 
 

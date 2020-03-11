@@ -2,13 +2,23 @@
 {% load static %}
 {% block body %}
     <div class="col-md-6 offset-md-1 section-container">
-        <h2 id='page-heading'>Messages</h2>
-        <div class="message-item">
-            <img src="{% static 'images/avatar.jpeg' %}" class="profile-image" alt=""/>
-            <h5 class="contact-name">James Olich</h5>
-            <p class="message-time pull-right">07:32</p><br/>
-            <p href="#" class="last-text">Lorem Ipsum standard dummy text ever since the 1500s...<span class="badge pull-right">10</span></p>
-        </div>
+        <h3 id='page-heading'>Messages</h3>
+        {% for contact, room, last_text,party in messages %}
+            <a href="{% url 'chat:chat' room %}" class="message_anchor">
+                <div class="message-item" >
+                    <img src="{% static 'images/avatar.jpeg' %}" class="profile-image" alt=""/>
+                    <h6 class="contact-name">{{contact.first_name}} {{ contact.last_name }}</h6>
+                    <p class="message-time float-right">{{ last_text.timestamp }}</p>
+                    <p href="#" class="last-text">{{ last_text.sliced_text }}
+                        {% if party == 'A'  and room.unread_B != 0 %}
+                            <span class="badge">{{ room.unread_B }}</span>
+                        {% elif party == 'B' and room.unread_A != 0 %}
+                            <span class="badge">{{ room.unread_A }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </a>
+        {% endfor %}
     </div>
     <script>
         $(document).ready(function() {

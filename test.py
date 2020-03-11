@@ -1,4 +1,4 @@
-x = ["0", "1", "2"]
+x = []
 
-print(x[0:3])
+print(x[0:10])
 print(len(x))

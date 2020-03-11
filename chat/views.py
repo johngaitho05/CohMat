@@ -25,13 +25,15 @@ def contacts_view(request):
 
 @login_required
 def chat(request, room_name):
+    party = other_user_party(request.user.id, room_name)
+    update_unread(party, room_name)
     today = date.strftime(date.today(), "%Y-%m-%d")
     room_to_json = mark_safe(json.dumps(room_name))
     username_json = mark_safe(json.dumps(request.user.username))
     active_contact = get_active_contact(request.user.id, room_name)
     texts = Message.objects.filter(chat_room=room_name).order_by('-timestamp')
     texts_list = get_texts(texts)
-    chat_list = get_chat_list(request.user)
+    chat_list = get_recent_chats(request.user)
     if not texts_list:
         texts_list = 'Null'
     if chat_list is not None:
@@ -39,6 +41,7 @@ def chat(request, room_name):
                       {'texts_list': texts_list,
                        'active_contact': active_contact,
                        'recents': chat_list[::-1],
+                       'room_name':room_name,
                        'room_name_json': room_to_json,
                        'username_json': username_json,
                        'today': today})
@@ -47,6 +50,7 @@ def chat(request, room_name):
                       {'texts_list': texts_list,
                        'active_contact': active_contact,
                        'recents': 'Null',
+                       'room_name': room_name,
                        'room_name_json': room_to_json,
                        'username_json': username_json,
                        'today': today})
@@ -54,7 +58,7 @@ def chat(request, room_name):
 
 @login_required
 def home(request):
-    chat_list = get_chat_list(request.user)
+    chat_list = get_recent_chats(request.user)
     if chat_list is not None:
         return render(request, 'chat/home.html', {'recents': chat_list})
     else:
@@ -89,27 +93,20 @@ def get_contacts(user):
 
 
 # returns a list of recent chats to display on the homepage
-def get_chat_list(user):
+def get_recent_chats(user):
     contacts = get_contacts(user)
     contacts_list = [contact for contact in contacts]
     if len(contacts_list) > 0:
         chat_list = []
         for contact in contacts:
             room = get_chat_room(contact, user.id)
-            if room.last_message.author.username != get_default_last_message():
-                chat_list.append((User.objects.get(id=contact), room, formatted_text(room.last_message.content)))
+            if room.last_message != get_default_last_message():
+                party = other_user_party(user.id,room.name)
+                chat_list.append((User.objects.get(id=contact), room, room.last_message, party))
         if len(chat_list) == 0:
             return
         return chat_list
     return
-
-
-# takes te last message of a given chatroom and returns the first 40 characters if the text length exceeds 40
-def formatted_text(text):
-    if len(text) > 40:
-        return text[:40] + '...'
-    else:
-        return text
 
 
 # called when a new user registers to create chatrooms through which the user can chat with other members
@@ -129,7 +126,6 @@ def get_chat_rooms(contacts, user):
 
 
 def get_chat_room(contact_id, user_id):
-
     if contact_id < user_id:
         room_name = str(contact_id) + 'A' + str(user_id)
     else:
@@ -154,8 +150,6 @@ def get_active_contact(user_id, chat_room):
 
 def get_active_contact_id(user_id, chat_room):
     id_list = chat_room.split('A')
-    print(id_list)
-    print(user_id)
     if int(id_list[0]) == user_id:
         return int(id_list[1])
     elif int(id_list[1]) == user_id:
@@ -169,6 +163,14 @@ def update_last_message(chat_room, message):
     current_room = ChatRoom.objects.get(name=str(chat_room))
     current_room.last_message = message
     current_room.save()
+
+
+def other_user_party(user_id, chat_room):
+    id_list = chat_room.split('A')
+    if int(id_list[0]) == user_id:
+        return 'B'
+    elif int(id_list[1]) == user_id:
+        return 'A'
 
 
 def get_texts(messages):
@@ -189,4 +191,38 @@ def get_texts(messages):
 
 def get_default_last_message():
     user = User.objects.get(username='johnyk')
-    return Message.objects.filter(author=user)[:1].get()
+    return Message.objects.filter(author=user, ).order_by('timestamp')[:1].get()
+
+
+@login_required
+def delete_texts(request):
+    if request.method == 'POST':
+        to_delete = request.POST.getlist('to_delete')
+        for message_id in to_delete:
+            message = Message.objects.get(id=int(message_id))
+            message.delete()
+        room_name = request.POST['room_name']
+        return redirect('chat:chat', room_name=room_name)
+    return redirect('chat:homepage')
+
+
+def formatted_text(text):
+    if len(text) > 40:
+        return text[:40] + '...'
+    else:
+        return text
+
+
+def update_unread(party, room_name):
+    try:
+        chat_room = ChatRoom.objects.get(name=room_name)
+        if party == 'A':
+            chat_room.unread_B = 0
+        elif party == 'B':
+            chat_room.unread_A = 0
+        chat_room.save()
+    except ChatRoom.DoesNotExist:
+        ChatRoom.objects.create(name=room_name,last_message=get_default_last_message())
+
+
+

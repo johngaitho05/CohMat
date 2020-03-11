@@ -23,11 +23,19 @@ class Message(models.Model):
     def __str__(self):
         return self.author.username
 
+    def sliced_text(self):
+        if len(self.content) > 40:
+            return self.content[:40] + '...'
+        else:
+            return self.content
+
 
 class ChatRoom(models.Model):
     name = models.CharField(max_length=50)
     last_message = models.ForeignKey(Message, related_name='chatroom_last_message'
                                      , on_delete=models.CASCADE)
+    unread_A = models.IntegerField(default=0)
+    unread_B = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.name)

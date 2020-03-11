@@ -1,4 +1,4 @@
-from LinkedLists.CircularLinkedList import CircularLinkedList
+from data_structures.LinkedLists.CircularLinkedList import CircularLinkedList
 
 
 class EmptyQueueError(Exception):

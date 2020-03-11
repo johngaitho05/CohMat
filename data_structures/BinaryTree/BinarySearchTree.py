@@ -13,8 +13,11 @@ class Node:
 
 
 class BinarySearchTree:
-    def __init__(self):
-        self.root  = None
+    def __init__(self,initial_elements=None):
+        self.root = None
+        if initial_elements is not None:
+            for x in initial_elements:
+                self.insert(x)
 
     def is_empty(self):
         return self.root is None

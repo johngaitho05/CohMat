@@ -1,6 +1,6 @@
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
@@ -44,7 +44,7 @@ def register_view(request):
         study_field = request.POST['study_field']
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
-        groups = request.POST['selected_cohorts']
+        groups = create_groups_list(request.POST['selected_cohorts'])
         if first_name and last_name and username and email and study_field and pass1 and pass2 and groups:
             if pass1 == pass2:
                 try:
@@ -67,11 +67,12 @@ def register_view(request):
                         # create user profile
                         try:
                             profile_photo = request.FILES['profile_photo']
-                            create_profile(new_user, study_field, create_groups_list(groups), profile_photo)
+                            create_profile(new_user, study_field, groups, profile_photo)
                         except MultiValueDictKeyError:
-                            create_profile(new_user, study_field, create_groups_list(groups))
+                            create_profile(new_user, study_field, groups)
                         # add channels through which user can chat one-on-one with each member
                         add_chat_rooms(new_user)
+                        increment_group_members(groups)
                         current_site = get_current_site(request)
                         email_subject = 'Activate Your Account'
                         message = render_to_string('accounts/acc_active_email.html', {
@@ -114,9 +115,9 @@ def login_view(request):
 def create_profile(user, study_field, groups, profile_photo=None):
     if profile_photo is not None:
         handle_uploaded_file(profile_photo, 'profile_photos')
-        new_profile = UserProfile(user=user, profile_photo='profile_photos'
-                                                           + '/' + profile_photo.name, study_field=study_field,
-                                  user_groups=groups
+        new_profile = UserProfile(user=user,
+                                  profile_photo='profile_photos' + '/' + profile_photo.name,
+                                  study_field=study_field, user_groups=groups
                                   )
     else:
         new_profile = UserProfile(user=user, study_field=study_field, user_groups=groups)
@@ -186,6 +187,13 @@ def cohort_to_json(cohort):
 def create_groups_list(user_array):
     groups_list = user_array.split(',')
     groups_list.pop()
-    return groups_list
+    return [int(group_id) for group_id in groups_list]
+
+
+def increment_group_members(groups):
+    for group in groups:
+        group = get_object_or_404(Cohort, id=group)
+        group.no_of_members += 1
+        group.save()
 
 

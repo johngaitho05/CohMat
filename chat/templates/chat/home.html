@@ -1,11 +1,12 @@
 {% extends 'chat/base.html' %}
 {% load staticfiles %}
 {% block css %}
-    {% static  'chat/css/home.css' %}
+    {% static  'chat/css/chat.css' %}
 {% endblock %}
 {% block body %}
     <div class="row">
         <div class="col-md-3 col-xs-12" id="phone-panel">
+        <a href="{% url 'mainapp:homeView' %}" id="home_btn">Back to Home</a>
             <nav class="navbar navbar-collapse-sm navbar-light bg-light">
                 <h6>Logged in as <span style="color:#13f3de; font-size:12px">{{ user.first_name }} {{ user.last_name }}</span></h6>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,7 +16,6 @@
                     {% if recents %}
                         <a class="nav-item nav-link" href="{% url 'chat:show_contacts' %}">Contacts</a>
                     {% else %}
-                        <a class="nav-item nav-link" id="add" href="javascript:{document.getElementById('init-add').submit();}">Add contact</a>
                         <a class="nav-item nav-link" href="{% url 'chat:homepage'%}">Recent chats</a>
                     {% endif %}
                     <a class="nav-item nav-link active" href="#">Edit Account</a>
@@ -45,13 +45,13 @@
             {% if contacts %}
                 {% for contact, room in contacts %}
                     <div id="contacts-log">
-                    <a href="javascript:{window.location.pathname = '/chat/{{room.name}}/';}">
+                    <a href="javascript:{window.location.pathname = '/messaging/chat/{{room.name}}';}">
                         <div class="card contact">
                             <div style="float:left; height:100%">
                                 <img src="{% static 'chat/img/man.png' %}" alt="image" class="dp"/>
                                 <h4>{{ contact.first_name }} {{ contact.last_name }}</h4>
-{#                                <br />#}
-{#                                <small style="padding-left: 50px; color:black">{{ contact.phone }}</small>#}
+                                {#                                <br />#}
+                                {#                                <small style="padding-left: 50px; color:black">{{ contact.phone }}</small>#}
                             </div>
                         </div>
                     </a>
@@ -62,14 +62,14 @@
                 </script>
             {% elif recents %}
                 {% if recents != 'Null' %}
-                    {% for contact, room, last_text in recents %}
-                        <a href="javascript:{window.location.pathname = '/chat/{{room.name}}/';}" id="chat_init">
+                    {% for contact, room, last_text,party in recents %}
+                        <a href="javascript:{window.location.pathname = '/messaging/chat/{{room.name}}';}" id="chat_init">
                             <div class="card contact">
                                 <div class="image" style="float:left; height:100%">
                                     <img src="{% static 'chat/img/man.png' %}" alt="image" class="dp"/>
                                     <h4>{{ contact.first_name }} {{ contact.last_name }}</h4>
                                     <br />
-                                    <small style="padding-left: 50px;color:#0900ff;font-style: italic" id="{{ contact.id }}">{{ last_text }}</small>
+                                    <small style="padding-left: 50px;color:#0900ff;font-style: italic" id="{{ contact.id }}">{{ last_text.sliced_text }}</small>
                                 </div>
                             </div>
                         </a>
@@ -85,6 +85,9 @@
             <div class="texts">
                 <div class="header" >
                     <div id="active_user-panel"><h3 id="active_user">Chat Panel</h3></div>
+                    {% if texts_list and texts_list != 'Null'%}
+                        <p id="delete-initiator" onclick="toggle_delete_view()">DeleteView</p>
+                    {% endif %}
                 </div>
                 <div id="texts_section">
                     {% if texts_list  %}
@@ -105,26 +108,33 @@
                             </form>
                         {% else %}
                             <div id="chatlog">
-                                {% for date,texts in texts_list %}
-                                    {% if date == today %}
-                                        <p class="text-center date" >Today</p>
-                                    {% else %}
-                                        <p class="text-center date" >{{ date }}</p>
-                                    {% endif %}
-                                    {% for text,time in texts %}
-                                        {% if text.author == user %}
-                                            <div class="sent">
-                                                <p > {{ text.content }}</p>
-                                                <p class ="time">{{ time }}</p>
-                                            </div>
+                                <button type="button" onclick="delete_texts()" class="btn btn-outline-danger" id="delete-button">Delete</button>
+                                <form method="post" action="{% url 'chat:delete_texts' %}" id="delete-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="room_name" value="{{ room_name }}"/>
+                                    {% for date,texts in texts_list %}
+                                        {% if date == today %}
+                                            <p class="text-center date" >Today</p>
                                         {% else %}
-                                            <div class="replies">
-                                                <p> {{ text.content }}</p>
-                                                <p class ="time">{{ time }}</p>
-                                            </div>
+                                            <p class="text-center date" >{{ date }}</p>
                                         {% endif %}
+                                        {% for text,time in texts %}
+                                            {% if text.author == user %}
+                                                <div class="sent">
+                                                    <p > {{ text.content }}</p>
+                                                    <p class ="time">{{ time }}</p>
+                                                    <input class="delete-sent" type="checkbox" name="to_delete" value="{{ text.id }}"/>
+                                                </div>
+                                            {% else %}
+                                                <div class="replies">
+                                                    <p> {{ text.content }}</p>
+                                                    <p class ="time">{{ time }}</p>
+                                                    <input class="delete-reply" type="checkbox" name="to_delete" value="{{ text.id }}"/>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
                                     {% endfor %}
-                                {% endfor %}
+                                </form>
                             </div>
                             <form  class="form-inline" id="input-message">
                                 <div class="form-group" style="width:100%" id="text_form">
@@ -157,7 +167,7 @@
 
             let chatSocket = new ReconnectingWebSocket(
                 'ws://' + window.location.host +
-                '/ws/chat/' + roomName + '/');
+                '/ws/messaging/chat/' + roomName);
 
             chatSocket.onmessage = function(e) {
                 let data = JSON.parse(e.data);
