@@ -1,4 +1,4 @@
-from Heap.Heap import MaxHeap
+from data_structures.Heap.Heap import MaxHeap
 
 
 class EmptyQueueError(Exception):

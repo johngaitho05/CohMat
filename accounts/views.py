@@ -44,8 +44,9 @@ def register_view(request):
         study_field = request.POST['study_field']
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
+        school = request.POST['school']
         groups = create_groups_list(request.POST['selected_cohorts'])
-        if first_name and last_name and username and email and study_field and pass1 and pass2 and groups:
+        if first_name and last_name and username and email and study_field and pass1 and pass2 and groups and school:
             if pass1 == pass2:
                 try:
                     User.objects.get(email=email)
@@ -67,9 +68,9 @@ def register_view(request):
                         # create user profile
                         try:
                             profile_photo = request.FILES['profile_photo']
-                            create_profile(new_user, study_field, groups, profile_photo)
+                            create_profile(new_user, study_field, groups, school, profile_photo)
                         except MultiValueDictKeyError:
-                            create_profile(new_user, study_field, groups)
+                            create_profile(new_user, study_field, groups, school)
                         # add channels through which user can chat one-on-one with each member
                         add_chat_rooms(new_user)
                         increment_group_members(groups)
@@ -112,15 +113,16 @@ def login_view(request):
 
 
 # Create profile for the registered user
-def create_profile(user, study_field, groups, profile_photo=None):
+def create_profile(user, field_id, groups, school, profile_photo=None):
+    study_field = Cohort.objects.get(id=int(field_id))
     if profile_photo is not None:
         handle_uploaded_file(profile_photo, 'profile_photos')
         new_profile = UserProfile(user=user,
                                   profile_photo='profile_photos' + '/' + profile_photo.name,
-                                  study_field=study_field, user_groups=groups
+                                  study_field=study_field, user_groups=groups, school=school
                                   )
     else:
-        new_profile = UserProfile(user=user, study_field=study_field, user_groups=groups)
+        new_profile = UserProfile(user=user, study_field=study_field, user_groups=groups, school=school)
     new_profile.save()
 
 
@@ -175,12 +177,12 @@ def get_subcohorts(request):
 
 def cohort_to_json(cohort):
     return {
-        'id':cohort.id,
-        'title':cohort.title,
-        'logo':cohort.logo.url,
-        'no_of_members':cohort.no_of_members,
-        'total_posts':cohort.total_posts,
-        'date_created':str(cohort.date_created)
+        'id': cohort.id,
+        'title': cohort.title,
+        'logo': cohort.logo.url,
+        'no_of_members': cohort.no_of_members,
+        'total_posts': cohort.total_posts,
+        'date_created': str(cohort.date_created)
     }
 
 
@@ -195,5 +197,3 @@ def increment_group_members(groups):
         group = get_object_or_404(Cohort, id=group)
         group.no_of_members += 1
         group.save()
-
-

@@ -11,7 +11,7 @@ html {
 body {
     height: 100%;
     margin: 0;
-    font-family:'Nunito Sans', montserrat, arial, verdana,sans-serif;
+    font-family:sans-serif;
     background: rgba(226, 64, 64, 0.73) no-repeat fixed;
 }
 .row{
@@ -23,11 +23,10 @@ body {
 }
 /*form styles*/
 .msform {
-    /*    width: 100%;*/
     margin: 20px auto;
-    text-align: center;
     position: relative;
 }
+
 .msform-edited fieldset{
     background: rgba(107, 162, 162, 0.73);
 }
@@ -138,12 +137,15 @@ body {
     background: #27AE60;
     color: white;
 }
+.fieldset-title,.fieldset-footer{
+    text-align: center;
+}
 
 .fieldset-header{
     color: #f3056f;
     font-weight: 600;
     font-size: 18px;
-    font-family: 'Patua One', "French Script MT", cursive ;
+    font-family: "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier, monospace
 }
 .fieldset-subheader{
     color:#1b6d85;
@@ -276,22 +278,19 @@ h5{
     margin-right: 40%;
 }
 
-#study_field_label{
-    padding-top: 20px;
-}
 
 #imagePreview{
     background-image: url(../images/default_profile_pic.png);
 }
 
 #login-button{
-position: fixed;
+    position: absolute;
     top: 20px;
-    right:30px;
+    left:30px;
     color: #006df3;
     font-size: 18px;
     text-transform: uppercase;
-    font-family: "Bitstream Vera Sans Mono", Monaco, "Courier New", Courier, monospace;
+    font-family:  Monaco, "Courier New", Courier, monospace;
     font-weight: 600;
 }
 

@@ -24,17 +24,27 @@
             <h3 id="banner">{{ error_message }}</h3>
             <!--fieldsets-->
             <fieldset>
-                <h2 class="fs-title fieldset-header">Create your account</h2>
-                <h3 class="fs-subtitle fieldset-subheader">This is step 1</h3>
-                <input type="text" name="email" id="email" placeholder="Your School Email" />
-                <input type="text" name="username" id="username" placeholder="Username" />
-                <input type="password" name="password1" id="password1" placeholder="Password" />
-                <input type="password" name="password2" id="password2" placeholder="Confirm Password" />
-                <input type="button" name="next" class="next action-button" value="Next" />
+                <div class="fieldset-title">
+                    <h2 class="fs-title fieldset-header">Create your account</h2>
+                    <h3 class="fs-subtitle fieldset-subheader">This is step 1</h3>
+                </div>
+                <label for="email">Email</label>
+                <input type="text" name="email" id="email" placeholder="Type in your School Email"/>
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" placeholder="Enter a username of your choice"/>
+                <label for="password1">Password</label>
+                <input type="password" name="password1" id="password1" placeholder="Choose a password"/>
+                <label for="password2">Confirm password</label>
+                <input type="password" name="password2" id="password2" placeholder="Retype password"/>
+                <div class="fieldset-footer">
+                    <input type="button" name="next" class="next action-button" value="Next" />
+                </div>
             </fieldset>
             <fieldset id="profile_details">
-                <h2 class="fs-title fieldset-header">Build your profile</h2>
-                <h3 class="fs-subtitle fieldset-subheader">Help other CohMat members know more about you</h3>
+                <div class="fieldset-title">
+                    <h2 class="fs-title fieldset-header">Build your profile</h2>
+                    <h3 class="fs-subtitle fieldset-subheader">Help other CohMat members know more about you</h3>
+                </div>
                 <div class="avatar-upload">
                     <div class="avatar-edit">
                         <input type='file' name="profile_photo" id="imageUpload" accept=".png, .jpg, .jpeg" />
@@ -47,9 +57,11 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-6">
+                        <label for="first_name">First Name</label>
                         <input type="text" name="first_name" id="first_name" placeholder="First Name"/>
                     </div>
                     <div class="col-sm-6">
+                        <label for="last_name">Last Name</label>
                         <input type="text" name="last_name" id="last_name" placeholder="Last Name"/>
                     </div>
                     <div class="col-lg-12">
@@ -59,10 +71,14 @@
                                 <option value="{{ field.id }}">{{field.title}}</option>
                             {% endfor %}
                         </select>
+                        <label for="school">School</label>
+                        <input type="text" name="school" id="school" placeholder="Types the name of your school"/>
                     </div>
                 </div>
-                <input type="button" name="back" class="previous action-button" value="Back"/>
-                <input type="button" name="next" class="next action-button" value="Next" />
+                <div class="fieldset-footer">
+                    <input type="button" name="back" class="previous action-button" value="Back"/>
+                    <input type="button" name="next" class="next action-button" value="Next" />
+                </div>
             </fieldset>
 
             <fieldset class="cohort_list">
@@ -75,15 +91,19 @@
                         <i class="fas fa-caret-right" id="load_next" onclick="load_cohorts('right')"></i>
                     </p>
                 </div>
-                <h2 class="fs-title fieldset-header">Find your community</h2>
-                <h3 class="fs-subtitle fieldset-subheader">Select at least one cohort that you'd like to join</h3>
-                <br />
-                <div class="row" id="to_join_container">
-{#                    cohorts goes here#}
+                <div class="fieldset-title">
+                    <h2 class="fs-title fieldset-header">Find your community</h2>
+                    <h3 class="fs-subtitle fieldset-subheader">Select at least one cohort that you'd like to join</h3>
                 </div>
                 <br />
-                <input type="button" name="back" class="previous action-button" value="Back" />
-                <input type="button" onclick="return submitRegForm();"  name="submit_button"  class="submit action-button" value="Submit" />
+                <div class="row" id="to_join_container">
+                    {#                    cohorts goes here#}
+                </div>
+                <br />
+                <div class="fieldset-footer">
+                    <input type="button" name="back" class="previous action-button" value="Back" />
+                    <input type="button" onclick="return submitRegForm();"  name="submit_button"  class="submit action-button" value="Submit" />
+                </div>
             </fieldset>
             <input type="hidden" id="selected_cohorts" value="" name="selected_cohorts"/>
         </form>

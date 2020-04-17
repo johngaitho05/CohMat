@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     {% load staticfiles %}
-    <title>Cohmat Home</title>
+    {% block title %}
+        <title>Cohmat Home</title>
+    {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'mainapp/css/main.css' %}"/>
@@ -62,7 +64,7 @@
 <!--User details sidenav-->
 <div id="mySidenav" class="sidenav" data-backdrop=''>
     <a href="#" class="closebtn" onclick="closeNav()">&times;</a>
-    <a href="#">Edit profile</a>
+    <a href="{% url 'mainapp:profile_view' user.userprofile.id %}">View profile</a>
     <a href="#">Manage my groups</a>
     <a href="#">Change Password</a>
     <a href="#">Switch Account</a>
@@ -82,31 +84,38 @@
     {% block body %}
     {% endblock %}
     <!--Chatting pane-->
-    <div class="col-md-4 column hidden-sm hidden-xs">
-        <div id="quick-chat-panel">
-            <p class="column-title">One-on-one chat </p>
-            <div id="column-3-subtitles">
-                <table class=" table-condensed">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Current Interest</th>
-                        <th>Start Chat</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for user, chatroom in contacts %}
+    {% block quick_messaging %}
+        <div class="col-md-4 column hidden-sm hidden-xs">
+            <div id="quick-chat-panel">
+                <p class="column-title">One-on-one chat </p>
+                <div id="column-3-subtitles">
+                    <table class=" table-condensed">
+                        <thead>
                         <tr>
-                            <td>{{user.first_name}} {{ user.last_name }}</td>
-                            <td>{{user.userprofile.current_interest}}</td>
-                            <td><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                            <th>Person</th>
+                            <th>Current Interest</th>
+                            <th></th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {% for user, chatroom in contacts %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'mainapp:profile_view' user.userprofile.id %}">
+                                        <img src="{{ user.userprofile.profile_photo.url }}" class="img-fluid profile-image" alt=""/>
+                                        {{user.first_name}} {{ user.last_name }}
+                                    </a>
+                                </td>
+                                <td>{{user.userprofile.current_interest}}</td>
+                                <td><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
+    {% endblock %}
 </div>
 <!--QUIZ MODAL-->
 <div class="modal fade" id="questionModal" tabindex="-1" role="dialog" aria-labelledby="questionleModalLabel" aria-hidden="true">

@@ -13,7 +13,7 @@ body{
     margin: 0;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    font-family: montserrat, arial, verdana;
+    font-family: montserrat, arial, verdana, sans-serif;
 }
 html {
         margin: 0;

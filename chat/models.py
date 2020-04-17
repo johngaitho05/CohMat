@@ -32,8 +32,9 @@ class Message(models.Model):
 
 class ChatRoom(models.Model):
     name = models.CharField(max_length=50)
-    last_message = models.ForeignKey(Message, related_name='chatroom_last_message'
-                                     , on_delete=models.CASCADE)
+    last_message = models.ForeignKey(Message, null=True,
+                                     related_name='chatroom_last_message',
+                                     on_delete=models.SET_NULL)
     unread_A = models.IntegerField(default=0)
     unread_B = models.IntegerField(default=0)
 

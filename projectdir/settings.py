@@ -144,7 +144,7 @@ CHANNEL_LAYERS = {
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'johngaitho05@gmail.com'
-EMAIL_HOST_PASSWORD = 'tskutzjdczluzbto'
+EMAIL_HOST_PASSWORD = 'wpvnsvjqdunojbuh'
 EMAIL_PORT = 587
 
 LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/'

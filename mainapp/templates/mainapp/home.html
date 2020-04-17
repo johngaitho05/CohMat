@@ -10,7 +10,11 @@
             <form method="post" action="{% url 'mainapp:join' %}">
                 {% csrf_token %}
                 <button class="btn btn-outline-primary" type="submit" id="join-recommended">Join Selected</button>
+                {% if to_recommend %}
                 <h5 id="join-help">Select a group to join</h5>
+                    {% else %}
+                <p >No recommendable groups found</p>
+            {% endif %}
                 <ul id="recommended-groups">
                     {% for cohort in to_recommend %}
                         <li class="panel-title">

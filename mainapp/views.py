@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
 from django.views.generic import *
-from chat.views import get_contacts, get_chat_rooms
+from chat.views import get_contacts, get_chat_rooms, get_chat_room
 from chat.views import get_recent_chats,other_user_party
 from .models import Cohort, Question, Notification, Answer, Reply
 from accounts.models import UserProfile
@@ -76,9 +76,24 @@ def notificationsView(request):
                    'contacts': data['contacts']})
 
 
+@method_decorator(login_required, name='dispatch')
+class ProfileView(DetailView):
+    model = UserProfile
+    template_name = 'mainapp/profile.html'
+
+    def get_context_data(self, **kwargs):
+        cohorts = [Cohort.objects.get(id=coh_id) for coh_id in self.request.user.userprofile.user_groups]
+        context = super(ProfileView, self).get_context_data(**kwargs)
+        chatroom = get_chat_room(UserProfile.objects.get(id=self.kwargs['pk']).user.id, self.request.user.id)
+        context.update({
+            'cohorts': cohorts,
+            'chatroom': chatroom
+        })
+        return context
+
+
 def get_user_data(user):
-    contacts_ids = get_contacts(user)
-    contacts = get_chat_rooms(contacts_ids, user)
+    contacts = get_contacts(user)
     user_cohorts = user.userprofile.user_groups
     user_cohorts = [Cohort.objects.get(id=cohort) for cohort in user_cohorts]
     newsfeed_list = SingleLinkedList()
@@ -93,7 +108,7 @@ def get_user_data(user):
     for quiz in newsfeed_list[0:30]:
         answers = Answer.objects.filter(question=quiz).order_by('-time')
         newsfeed_dict.update({quiz: answers})
-    leaf_cohort = Cohort.objects.get(id=user.userprofile.study_field)
+    leaf_cohort = user.userprofile.study_field
     all_cohorts = leaf_cohort.get_descendants(include_self=False)
     to_recommend = []
     for cohort in all_cohorts:
@@ -101,7 +116,7 @@ def get_user_data(user):
             to_recommend.append(cohort)
     random.shuffle(to_recommend)
     to_recommend = to_recommend
-    return {'to_recommend': to_recommend[0:30], 'contacts': contacts[0:30],
+    return {'to_recommend': to_recommend[0:30], 'contacts': contacts,
             'newsfeed': newsfeed_dict, 'user_cohorts': user_cohorts}
 
 

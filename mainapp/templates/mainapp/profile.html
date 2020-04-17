@@ -1,0 +1,74 @@
+{% extends 'mainapp/base.html' %}
+{% block title %}
+    <title>Profile</title>
+{% endblock %}
+{% load static %}
+{% block body %}
+    <div class="col-md-11 offset-md-1 profile-container">
+        <div class="row" id="profile-row">
+            <div class="col-md-4">
+                <div class="card profile-card">
+                    <img style="margin: auto" class="img-fluid" width="300" height="400" src="{{ userprofile.profile_photo.url }}" alt="profile_photo"/>
+                    <hr style="width:90%"/>
+                    <h4>{{ userprofile.user.first_name }} {{ userprofile.user.last_name }}</h4>
+                    <h6><img src="{% static 'mainapp/images/school-solid.svg' %}" width="17" height="17"/> {{ userprofile.school }}</h6>
+                    <h6><i class="fas fa-graduation-cap"></i> {{ userprofile.study_field }}</h6>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h4>Membership</h4>
+                <p>Member of CohMat since <b>{{ userprofile.user.date_joined.date }}</b></p>
+                <ul id="user-membership-list">
+                    <h5>Groups</h5>
+                    {% for cohort in cohorts %}
+                        <li>
+                            <a href="#">{{ cohort }}</a>
+                            {% if userprofile.user == user %}
+                                <button class="btn btn-warning exit-button">Exit</button>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if userprofile.user == user %}
+                    <form class="interest-tag">
+                        <label class="control-label" for="interest-input"><b>Current interest:</b></label>
+                        <select class="form-control" id="interest-input">
+                            <option>{{ userprofile.current_interest }}</option>
+                            {% for cohort in cohorts %}
+                                <option>{{ cohort }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                {% else %}
+                    <p class="interest-tag"><b>Current interest:</b> <br/> <a href="#">{{ userprofile.current_interest }}</a></p>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4">
+
+                {% if userprofile.user == user %}
+                    <button class="btn btn-success float-right">Edit</button>
+                    <br/>
+                    <form >
+                        <label class="control-label" for="first_name" >First Name</label>
+                        <input class="form-control" type="text" id="first_name" name="first_name" readonly value="{{ user.first_name }}"/><br/>
+                        <label class="control-label" for="last_name">Last_name</label>
+                        <input class="form-control" type="text" id="last_name" name="last_name" value="{{ user.last_name }}" readonly/><br/>
+                        <label class="control-label" for="username" >Username</label>
+                        <input class="form-control" type="text" id="username" name="username" value="{{ user.username }}" readonly/><br/>
+                        <label class="control-label" for="email">Email</label>
+                        <input class="form-control" type="text" id="email" name="email" value="{{ user.email }}" readonly/><br/>
+                    </form>
+                {% else %}
+                    <h5>Contact info</h5>
+                    <p><b>Email:</b> {{ userprofile.user.email }}</p>
+                    <a href="{% url 'chat:chat' chatroom%}"><button class="btn btn-info">Chat on Smartchat</button></a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+{% block quick_messaging %}
+{% endblock %}

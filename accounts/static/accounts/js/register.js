@@ -7,8 +7,8 @@ $(".next").click(function(){
     if(animating) return false;
     animating = true;
 
-    current_fs = $(this).parent();
-    next_fs = $(this).parent().next();
+    current_fs = $(this).parent().parent();
+    next_fs = $(this).parent().parent().next();
 
     //activate next step on progressbar using the index of next_fs
     $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
@@ -52,8 +52,8 @@ $(".previous").click(function(){
     if(animating) return false;
     animating = true;
 
-    current_fs = $(this).parent();
-    previous_fs = $(this).parent().prev();
+    current_fs = $(this).parent().parent();
+    previous_fs = $(this).parent().parent().prev();
 
     //de-activate current step on progressbar
     $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
@@ -139,7 +139,7 @@ function selectCard(id) {
 }
 
 function submitRegForm() {
-    let first_name, last_name, username, email, password1, password2, study_field, cohorts;
+    let first_name, last_name, username, email, password1, password2, study_field, school;
     first_name = document.getElementById('first_name').value;
     last_name = document.getElementById('last_name').value;
     username = document.getElementById('username').value;
@@ -147,10 +147,11 @@ function submitRegForm() {
     password1 = document.getElementById('password1').value;
     password2 = document.getElementById('password2').value;
     study_field = document.getElementById('study_field').value;
+    school = document.getElementById('school').value;
     let selected = get_selected().length;
     if (first_name !== '' && last_name !== '' && username !== ''
         && email !== '' && password1 !== '' && password2 !== ''
-        && study_field !== '') {
+        && study_field !== '' && school !== '') {
         if (password1 === password2) {
             if (selected === 0){
                 alert('You must select at least one cohort');

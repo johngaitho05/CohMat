@@ -1,9 +1,14 @@
 {% extends 'mainapp/base.html' %}
+{% block title %}
+    <title>Messages</title>
+    {% endblock %}
 {% load static %}
 {% block body %}
     <div class="col-md-6 offset-md-1 section-container">
-        <h3 id='page-heading'>Messages</h3>
-        {% for contact, room, last_text,party in messages %}
+    <h3  id='page-heading'>Messages</h3>
+    <a class="smartchat-link" href="{% url 'chat:homepage' %}">OPen Smartchat</a>
+    <div></div>
+        {% for contact, room, last_text in messages %}
             <a href="{% url 'chat:chat' room %}" class="message_anchor">
                 <div class="message-item" >
                     <img src="{% static 'images/avatar.jpeg' %}" class="profile-image" alt=""/>

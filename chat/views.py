@@ -1,13 +1,15 @@
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
+
+from accounts.models import UserProfile
 from .models import Contact, Message, ChatRoom
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import random
 from data_structures.Hashing.HashTable import HashTable
-from data_structures.LinkedLists.DoublyLinkedList import DoublyLinkedList
-from datetime import date, datetime
+from data_structures.Queue.PriorityQueue import PriorityQueue
+from datetime import date, datetime, timedelta
 from django.utils.safestring import mark_safe
 import json
 
@@ -27,24 +29,25 @@ def contacts_view(request):
 def chat(request, room_name):
     party = other_user_party(request.user.id, room_name)
     update_unread(party, room_name)
-    today = date.strftime(date.today(), "%Y-%m-%d")
+    today = date.today()
+    yesterday = today - timedelta(1)
     room_to_json = mark_safe(json.dumps(room_name))
     username_json = mark_safe(json.dumps(request.user.username))
     active_contact = get_active_contact(request.user.id, room_name)
-    texts = Message.objects.filter(chat_room=room_name).order_by('-timestamp')
-    texts_list = get_texts(texts)
+    texts_list = get_texts(room_name)
     chat_list = get_recent_chats(request.user)
     if not texts_list:
         texts_list = 'Null'
-    if chat_list is not None:
+    if chat_list:
         return render(request, 'chat/home.html',
                       {'texts_list': texts_list,
                        'active_contact': active_contact,
                        'recents': chat_list[::-1],
-                       'room_name':room_name,
+                       'room_name': room_name,
                        'room_name_json': room_to_json,
                        'username_json': username_json,
-                       'today': today})
+                       'today': today,
+                       'yesterday': yesterday})
     else:
         return render(request, 'chat/home.html',
                       {'texts_list': texts_list,
@@ -53,13 +56,14 @@ def chat(request, room_name):
                        'room_name': room_name,
                        'room_name_json': room_to_json,
                        'username_json': username_json,
-                       'today': today})
+                       'today': today,
+                       'yesterday': yesterday})
 
 
 @login_required
 def home(request):
     chat_list = get_recent_chats(request.user)
-    if chat_list is not None:
+    if chat_list:
         return render(request, 'chat/home.html', {'recents': chat_list})
     else:
         return render(request, 'chat/home.html', {'recents': 'Null'})
@@ -70,43 +74,30 @@ def contacts_view_extension(user):
     count = len(contacts)
     if count > 100:
         count = '99+ Contacts'
-        contacts = contacts[0:100]
+        contacts = contacts[:100]
     elif count == 1:
         count = '1 Contact'
     else:
         count = str(count) + 'Contacts'
-    return [get_chat_rooms(contacts, user), count]
+    return [get_contacts(user), count]
 
 
 # return a list of ids for those users that qualify to be in the user contacts
 def get_contacts(user):
-    to_compare = HashTable(27, user.userprofile.user_groups)
-    other_users = User.objects.exclude(id=user.id)
-    contacts = DoublyLinkedList()
-    for user in other_users:
-        user_groups = user.userprofile.user_groups
-        for i in range(len(user_groups)):
-            if to_compare.search(user_groups[i]) is not None:
-                break
-        contacts.insert_at_end(user.id)
-    return contacts.display_list()
+    contacts = User.objects.filter(userprofile__study_field=user.userprofile.study_field)
+    contacts_list = [contact for contact in contacts if contact != user]
+    return get_chat_rooms(contacts_list, user)
 
 
 # returns a list of recent chats to display on the homepage
 def get_recent_chats(user):
-    contacts = get_contacts(user)
-    contacts_list = [contact for contact in contacts]
-    if len(contacts_list) > 0:
-        chat_list = []
-        for contact in contacts:
-            room = get_chat_room(contact, user.id)
-            if room.last_message != get_default_last_message():
-                party = other_user_party(user.id,room.name)
-                chat_list.append((User.objects.get(id=contact), room, room.last_message, party))
-        if len(chat_list) == 0:
-            return
-        return chat_list
-    return
+    recent_chat_rooms = ChatRoom.objects.filter(name__contains=str(user.id),
+                                                last_message__timestamp__year=datetime.today().year)
+    recent_chat_rooms = recent_chat_rooms.order_by('-last_message_id',)[:20]
+    chat_list = [(get_active_contact(user.id, chat_room.name), chat_room, chat_room.last_message)
+                 for chat_room in recent_chat_rooms]
+    print(chat_list)
+    return chat_list
 
 
 # called when a new user registers to create chatrooms through which the user can chat with other members
@@ -114,14 +105,11 @@ def add_chat_rooms(current_user):
     users = User.objects.all()
     for user in users:
         new_room = str(user.id) + 'A' + str(current_user.id)
-        ChatRoom.objects.create(name=new_room, last_message=get_default_last_message())
+        ChatRoom.objects.create(name=new_room)
 
 
 def get_chat_rooms(contacts, user):
-    chat_rooms = []
-    for contact in contacts:
-        room = get_chat_room(contact, user.id)
-        chat_rooms.append((User.objects.get(id=contact), room))
+    chat_rooms = [(contact, get_chat_room(contact.id, user.id)) for contact in contacts]
     return chat_rooms
 
 
@@ -138,18 +126,18 @@ def get_chat_room(contact_id, user_id):
             messages_list = [message for message in chatroom_messages]
             room = ChatRoom.objects.create(name=room_name, last_message=messages_list[0])
         else:
-            room = ChatRoom.objects.create(name=room_name, last_message=get_default_last_message())
+            room = ChatRoom.objects.create(name=room_name)
     return room
 
 
-def get_active_contact(user_id, chat_room):
-    active_contact_id = get_active_contact_id(user_id, chat_room)
+def get_active_contact(user_id, room_name):
+    active_contact_id = get_active_contact_id(user_id, room_name)
     active_contact = get_object_or_404(User, id=active_contact_id)
     return active_contact
 
 
-def get_active_contact_id(user_id, chat_room):
-    id_list = chat_room.split('A')
+def get_active_contact_id(user_id, room_name):
+    id_list = room_name.split('A')
     if int(id_list[0]) == user_id:
         return int(id_list[1])
     elif int(id_list[1]) == user_id:
@@ -173,25 +161,17 @@ def other_user_party(user_id, chat_room):
         return 'A'
 
 
-def get_texts(messages):
-    date_list = []
-    texts_list = []
-    for message in messages:
-        message_date = str(message.timestamp)[:10]
-        date_list.append(message_date)
-    date_set = set(date_list)
-    for message_date in date_set:
-        texts = []
-        for message in messages:
-            if str(message.timestamp)[:10] == message_date:
-                texts.append((message, str(message.timestamp)[10:16]))
-        texts_list.append((message_date, texts[::-1]))
+def get_texts(room_name):
+    messages = Message.objects.filter(chat_room=room_name)
+    date_list = [message.timestamp.date() for message in messages]
+    date_set = sorted(set(date_list))
+    texts_list = [None] * len(date_set)
+    for i in range(len(date_set)):
+        message_date = date_set[i]
+        texts = [(message, message.timestamp.time()) for message in messages if
+                 message.timestamp.date() == message_date]
+        texts_list[i] = (message_date, texts)
     return texts_list
-
-
-def get_default_last_message():
-    user = User.objects.get(username='johnyk')
-    return Message.objects.filter(author=user, ).order_by('timestamp')[:1].get()
 
 
 @login_required
@@ -222,7 +202,12 @@ def update_unread(party, room_name):
             chat_room.unread_A = 0
         chat_room.save()
     except ChatRoom.DoesNotExist:
-        ChatRoom.objects.create(name=room_name,last_message=get_default_last_message())
+        ChatRoom.objects.create(name=room_name)
 
-
-
+# def update_last_message(room_name):
+#     try:
+#         chat_room = ChatRoom.objects.get(name=room_name)
+#         message = Message.objects.filter(chat_room=chat_room).order_by('-timestamp').first()
+#         chat_room.last_message = message
+#     except ChatRoom.DoesNotExist:
+#         pass
