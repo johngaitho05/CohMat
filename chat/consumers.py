@@ -6,7 +6,7 @@ from channels.generic.websocket import WebsocketConsumer
 from datetime import datetime
 import json
 from .models import Message, ChatRoom
-from .views import update_last_message,formatted_text,other_user_party
+from .views import update_last_message, other_user_party
 
 
 User = get_user_model()
@@ -29,16 +29,14 @@ class ChatConsumer(WebsocketConsumer):
     def new_message(self,data):
         author = data['from']
         content = data['message']
-        chat_room = data['chat_room']
+        room_name = data['chat_room']
         author_user = get_object_or_404(User, username=author)
         current_time = datetime.strptime(data['current_time'], '%d-%m-%Y %H:%M:%S')
         message = Message.objects.create(author=author_user,
-                                         content=content, chat_room=chat_room, timestamp=current_time)
-        update_last_message(chat_room, message)
-        party = other_user_party(author_user.id, chat_room)
-        print(party)
-        room = ChatRoom.objects.get(name=chat_room)
-        print(room.name)
+                                         content=content, chat_room=room_name, timestamp=current_time)
+        update_last_message(room_name)
+        party = other_user_party(author_user.id, room_name)
+        room = ChatRoom.objects.get(name=room_name)
         if party == 'A':
             room.unread_A += 1
         elif party == 'B':
@@ -47,7 +45,7 @@ class ChatConsumer(WebsocketConsumer):
         content = {
             'command': 'new_message',
             'message': self.message_to_json(message),
-            'last_text': formatted_text(content)
+            'last_text': message.sliced_text()
         }
         self.send_chat_message(content)
     commands = {

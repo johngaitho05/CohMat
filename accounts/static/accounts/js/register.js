@@ -232,6 +232,7 @@ function changeCohortsContent(data, index1, index2){
     }
 }
 
+// load groups every time the user clicks on next/previous button
 function load_cohorts(direction){
     $.ajax({
         method: "POST",

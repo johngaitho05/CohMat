@@ -24,7 +24,7 @@
                         <li>
                             <a href="#">{{ cohort }}</a>
                             {% if userprofile.user == user %}
-                                <button class="btn btn-warning exit-button">Exit</button>
+                                <button class="btn btn-warning exit-button"><i class="fas fa-pen-square"></i>Edit</button>
                             {% endif %}
                         </li>
                     {% endfor %}
@@ -48,7 +48,7 @@
             <div class="col-md-4">
 
                 {% if userprofile.user == user %}
-                    <button class="btn btn-success float-right">Edit</button>
+                    <button class="btn btn-success float-right" onclick="allow_profile_editing()">Edit</button>
                     <br/>
                     <form >
                         <label class="control-label" for="first_name" >First Name</label>

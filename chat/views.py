@@ -94,9 +94,13 @@ def get_recent_chats(user):
     recent_chat_rooms = ChatRoom.objects.filter(name__contains=str(user.id),
                                                 last_message__timestamp__year=datetime.today().year)
     recent_chat_rooms = recent_chat_rooms.order_by('-last_message_id',)[:20]
-    chat_list = [(get_active_contact(user.id, chat_room.name), chat_room, chat_room.last_message)
-                 for chat_room in recent_chat_rooms]
-    print(chat_list)
+    chat_list = [chat_room for chat_room in recent_chat_rooms]
+    for i in range(len(chat_list)):
+        chat_room = chat_list[i]
+        contact = get_active_contact(user.id, chat_room.name)
+        party = other_user_party(user.id, chat_room.name)
+        last_text = chat_room.last_message
+        chat_list[i] = (contact, chat_room, party, last_text)
     return chat_list
 
 
@@ -109,8 +113,10 @@ def add_chat_rooms(current_user):
 
 
 def get_chat_rooms(contacts, user):
-    chat_rooms = [(contact, get_chat_room(contact.id, user.id)) for contact in contacts]
-    return chat_rooms
+    for i in range(len(contacts)):
+        room = get_chat_room(contacts[i].id, user.id)
+        contacts[i] = (contacts[i], room)
+    return contacts
 
 
 def get_chat_room(contact_id, user_id):
@@ -146,15 +152,8 @@ def get_active_contact_id(user_id, room_name):
         return -1
 
 
-# updates the last message every time the text is sent to a given chatroom
-def update_last_message(chat_room, message):
-    current_room = ChatRoom.objects.get(name=str(chat_room))
-    current_room.last_message = message
-    current_room.save()
-
-
-def other_user_party(user_id, chat_room):
-    id_list = chat_room.split('A')
+def other_user_party(user_id, room_name):
+    id_list = room_name.split('A')
     if int(id_list[0]) == user_id:
         return 'B'
     elif int(id_list[1]) == user_id:
@@ -182,15 +181,9 @@ def delete_texts(request):
             message = Message.objects.get(id=int(message_id))
             message.delete()
         room_name = request.POST['room_name']
+        update_last_message(room_name)
         return redirect('chat:chat', room_name=room_name)
     return redirect('chat:homepage')
-
-
-def formatted_text(text):
-    if len(text) > 40:
-        return text[:40] + '...'
-    else:
-        return text
 
 
 def update_unread(party, room_name):
@@ -204,10 +197,13 @@ def update_unread(party, room_name):
     except ChatRoom.DoesNotExist:
         ChatRoom.objects.create(name=room_name)
 
-# def update_last_message(room_name):
-#     try:
-#         chat_room = ChatRoom.objects.get(name=room_name)
-#         message = Message.objects.filter(chat_room=chat_room).order_by('-timestamp').first()
-#         chat_room.last_message = message
-#     except ChatRoom.DoesNotExist:
-#         pass
+
+# updates the last message every time the text is sent to a given chatroom
+def update_last_message(room_name):
+    try:
+        chat_room = ChatRoom.objects.get(name=room_name)
+        message = Message.objects.filter(chat_room=chat_room).order_by('-timestamp').first()
+        chat_room.last_message = message
+        chat_room.save()
+    except ChatRoom.DoesNotExist:
+        print("Chat_room not found!")

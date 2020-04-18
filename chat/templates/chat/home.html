@@ -6,7 +6,7 @@
 {% block body %}
     <div class="row">
         <div class="col-md-3 col-xs-12" id="phone-panel">
-        <a href="{% url 'mainapp:homeView' %}" id="home_btn">Back to Home</a>
+            <a href="{% url 'mainapp:homeView' %}" id="home_btn">Back to Home</a>
             <nav class="navbar navbar-collapse-sm navbar-light bg-light">
                 <h6>Logged in as <span style="color:#13f3de; font-size:12px">{{ user.first_name }} {{ user.last_name }}</span></h6>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
                 </script>
             {% elif recents %}
                 {% if recents != 'Null' %}
-                    {% for contact, room, last_text in recents %}
+                    {% for contact, room, party, last_text in recents %}
                         <a href="javascript:{window.location.pathname = '/messaging/chat/{{room.name}}';}" id="chat_init">
                             <div class="card contact">
                                 <div class="image" style="float:left; height:100%">
@@ -86,13 +86,14 @@
                 <div class="header" >
                     <div id="active_user-panel"><h3 id="active_user">Chat Panel</h3></div>
                     {% if texts_list and texts_list != 'Null'%}
-                        <p id="delete-initiator" onclick="toggle_delete_view()">DeleteView</p>
+                        <p id="delete-initiator" onclick="toggle_delete_view()">Delete Texts</p>
                     {% endif %}
                 </div>
                 <div id="texts_section">
                     {% if texts_list  %}
                         <script type="text/javascript">
-                            document.getElementById('active_user').innerHTML = '<img src="{{ active_contact.userprofile.profile_photo.url }}" id="activeimg" alt="image" class="dp"/>{{ active_contact.first_name }} {{ active_contact.last_name }}';
+                            document.getElementById('active_user').innerHTML =
+                                '<img src="{{ active_contact.userprofile.profile_photo.url }}" id="activeimg"alt="image" class="dp"/>{{ active_contact.first_name }} {{ active_contact.last_name }}';
                         </script>
                         <a></a>
                         {% if texts_list == 'Null' %}
@@ -108,13 +109,16 @@
                             </form>
                         {% else %}
                             <div id="chatlog">
-                                <button type="button" onclick="delete_texts()" class="btn btn-outline-danger" id="delete-button">Delete</button>
+                                <button type="button" onclick="delete_texts()" class="btn btn-outline-danger" id="delete-button">
+                                    Delete</button>
                                 <form method="post" action="{% url 'chat:delete_texts' %}" id="delete-form">
                                     {% csrf_token %}
                                     <input type="hidden" name="room_name" value="{{ room_name }}"/>
                                     {% for date,texts in texts_list %}
                                         {% if date == today %}
                                             <p class="text-center date" >Today</p>
+                                        {%  elif date == yesterday %}
+                                            <p class="text-center date" >Yesterday</p>
                                         {% else %}
                                             <p class="text-center date" >{{ date }}</p>
                                         {% endif %}
@@ -190,6 +194,7 @@
                 msgDiv.appendChild(timeTag);
                 document.querySelector('#chatlog').appendChild(msgDiv);
                 let active_contact = document.getElementById('{{ active_contact.id }}');
+                console.log(active_contact.innerText);
                 active_contact.innerHTML = last_text;
             };
             chatSocket.onclose = function() {

@@ -73,3 +73,16 @@ function styleactivelink(link_id) {
         to_style.classList.add('active');
     }
 }
+
+function allow_profile_editing(){
+    // find all inputs in the page
+    to_edit = document.getElementsByTagName("input");
+    // make all the inputs editable by removing the readonly attribute
+    for (let i = 0; i< to_edit.length; i++){
+        to_edit[i].removeAttribute('readonly');
+    }
+}
+
+function edit_profile(){
+
+}
