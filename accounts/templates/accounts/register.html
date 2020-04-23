@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans|Patua+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'accounts/css/register.css' %}" >
+
 </head>
 <body>
 <div class="row">
@@ -47,8 +48,8 @@
                 </div>
                 <div class="avatar-upload">
                     <div class="avatar-edit">
-                        <input type='file' name="profile_photo" id="imageUpload" accept=".png, .jpg, .jpeg" />
-                        <label for="imageUpload"><i class="fas fa-edit"></i></label>
+                        <input type='file' name="profile_photo" id="profile_photo" accept=".png, .jpg, .jpeg" />
+                        <label for="profile_photo"><i class="fas fa-edit"></i></label>
                     </div>
                     <div class="avatar-preview">
                         <div id="imagePreview" >
@@ -80,9 +81,9 @@
                     <input type="button" name="next" class="next action-button" value="Next" />
                 </div>
             </fieldset>
-
             <fieldset class="cohort_list">
                 <div class="cohort-loaders">
+                    <div id="alert-container"></div>
                     <p><input type="hidden" id="left-count" value=""/>
                         <i class="fas fa-caret-left" id="load_previous" onclick="load_cohorts('left')">
                         </i>
@@ -102,19 +103,33 @@
                 <br />
                 <div class="fieldset-footer">
                     <input type="button" name="back" class="previous action-button" value="Back" />
-                    <input type="button" onclick="return submitRegForm();"  name="submit_button"  class="submit action-button" value="Submit" />
+                    <input type="button" onclick="submitRegForm()"  name="submit_button"  class="submit action-button" value="Submit" />
                 </div>
             </fieldset>
             <input type="hidden" id="selected_cohorts" value="" name="selected_cohorts"/>
         </form>
     </div>
+    <form id="email-confirmation-form" method="post" action="{% url 'accounts:email-confirmation' %}">
+        {% csrf_token %}
+        <input type="hidden" id="user-email" name="email"/>
+    </form>
 </div>
+<div class="modal loader"></div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
 <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
 <script type="text/javascript" src="{% static 'accounts/js/register.js' %}"></script>
+
+<script>
+    $body = $("body");
+
+    $(document).on({
+        ajaxStart: function() { $body.addClass("loading");    },
+        ajaxStop: function() { $body.removeClass("loading"); }
+    });
+</script>
 </body>
 
 </html>

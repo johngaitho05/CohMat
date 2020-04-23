@@ -12,7 +12,7 @@ body {
     height: 100%;
     margin: 0;
     font-family:sans-serif;
-    background: rgba(226, 64, 64, 0.73) no-repeat fixed;
+    background: #f768d7;
 }
 .row{
     margin:0 !important;
@@ -299,6 +299,63 @@ h5{
     top:-99999px;
 }
 
+/*PLEASE WAIT ANIMATION*/
+/* Start by setting display:none to make this hidden.
+   Then we position it in relation to the viewport window
+   with position:fixed. Width, height, top and left speak
+   for themselves. Background we set to 80% white with
+   our animation centered, and no-repeating */
+.loader {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 )
+                url('../images/ajax-loader.gif')
+                50% 50%
+                no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading .loader {
+    overflow: hidden;
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .loader {
+    display: block;
+}
+
+
+
+.success-row{
+    margin-right: 0;
+}
+.success-div{
+    text-align: center;
+    margin-top: 5%;
+}
+.success-div p{
+    font-family: 'PT Sans', sans-serif;
+    font-size: 1.2rem;
+}
+
+.success-logo{
+    font-size: 6rem;
+    color: #1fd90c;
+}
+.success-header{
+    color: #1fd90c;
+}
+#edit-email-form{
+    max-width: 400px;
+    margin: 10% auto auto;
+}
 
 
 

@@ -12,5 +12,6 @@ urlpatterns = [
      path('join/', join_groups, name='join'),
      path('new_post', create_post, name='create_post'),
      path('answer_quiz', add_answer, name='answer_quiz'),
-     path('user_profile/<int:pk>', ProfileView.as_view(), name='profile_view')
+     path('user_profile/<int:pk>', ProfileView.as_view(), name='profile_view'),
+     path('user_profile/update', update_profile, name='profile_update'),
   ]

@@ -1,12 +1,16 @@
+import json
 import random
 
+from django.contrib.auth.models import User
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import *
 from chat.views import get_contacts, get_chat_rooms, get_chat_room
-from chat.views import get_recent_chats,other_user_party
+from chat.views import get_recent_chats, other_user_party
 from .models import Cohort, Question, Notification, Answer, Reply
 from accounts.models import UserProfile
 from data_structures.Searching.Searching import binary_search
@@ -185,4 +189,35 @@ def add_answer(request):
     return redirect('mainapp:homeView')
 
 
+@csrf_exempt
+@login_required
+def update_profile(request):
+    if request.is_ajax():
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        username = request.POST['username']
+        email = request.POST['email']
+        current_interest_id = request.POST['current_interest']
+        print(current_interest_id)
+        current_interest = Cohort.objects.get(id=current_interest_id) if current_interest_id else None
+        basic_info = {'first_name': first_name, 'last_name': last_name, 'username': username,
+                      'email': email}
+        profile_info = {'current_interest': current_interest}
+        user = request.user
+        try:
+            profile = UserProfile.objects.get(user=user)
+            for (key, value) in basic_info.items():
+                setattr(user, key, value)
+            user.save()
+            for (key, value) in profile_info.items():
+                setattr(profile, key, value)
+            profile.save()
+            response = {'code': 0, 'message': 'Successfully Updated'}
+            return JsonResponse(response)
+        except:
+            response = {'code': 1, 'message': 'Something went wrong!'}
+            return JsonResponse(response)
 
+    else:
+        response = {'code': 1, 'message': 'Unexpected request type'}
+        return JsonResponse(response)

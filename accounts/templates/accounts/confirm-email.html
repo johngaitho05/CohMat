@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load staticfiles %}
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans|Patua+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/css/register.css' %}" >
+</head>
+<body>
+<div id="alert-container"></div>
+<div class="row success-row">
+    <div class="col-md-6 offset-md-3 success-col success-div">
+        <i class="far fa-check-circle success-logo"></i>
+        <h4 class="success-header">Account Created</h4>
+        <p>We have sent an activation link to <b>{{ email }}</b>. Click on the link to activate your account</p>
+        <p><b>OR</b></p>
+        <p>Click <a href="#" onclick="show_edit_email_form()">here</a> to edit your email</p>
+
+        <form id="edit-email-form" method="post" action="" hidden>
+            <input type="hidden" id="email1" name="email1" value="{{ email }}"/>
+            <input type="email" placeholder="Type a new email address" id="email2" name="email2" class="form-control"/>
+            <br/>
+        </form>
+        <input type="button" onclick="editEmail()" class="btn btn-info" value="Submit"/>
+    </div>
+</div>
+<div class="modal loader"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+<script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+<script type="text/javascript" src="{% static 'accounts/js/register.js' %}"></script>
+
+<script type="text/javascript">
+    $body = $("body");
+
+    $(document).on({
+        ajaxStart: function() { $body.addClass("loading");    },
+        ajaxStop: function() { $body.removeClass("loading"); }
+    });
+</script>
+</body>
+</html>

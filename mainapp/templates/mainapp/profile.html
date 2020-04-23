@@ -24,7 +24,7 @@
                         <li>
                             <a href="#">{{ cohort }}</a>
                             {% if userprofile.user == user %}
-                                <button class="btn btn-warning exit-button"><i class="fas fa-pen-square"></i>Edit</button>
+                                <button class="btn btn-warning exit-button">Exit</button>
                             {% endif %}
                         </li>
                     {% endfor %}
@@ -33,10 +33,12 @@
                 {% if userprofile.user == user %}
                     <form class="interest-tag">
                         <label class="control-label" for="interest-input"><b>Current interest:</b></label>
-                        <select class="form-control" id="interest-input">
-                            <option>{{ userprofile.current_interest }}</option>
+                        <select class="form-control" id="interest-input" name="current_interest">
+                            <option value="{{  userprofile.current_interest.id }}">{{ userprofile.current_interest }}</option>
                             {% for cohort in cohorts %}
-                                <option>{{ cohort }}</option>
+                                {% if cohort != userprofile.current_interest %}
+                                <option value="{{ cohort.id }}">{{ cohort }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                     </form>
@@ -48,18 +50,24 @@
             <div class="col-md-4">
 
                 {% if userprofile.user == user %}
-                    <button class="btn btn-success float-right" onclick="allow_profile_editing()">Edit</button>
+                    <button class="btn btn-success float-right" onclick="allow_profile_editing()">
+                        <i class="fas fa-pen-square"></i>Edit</button>
                     <br/>
                     <form >
                         <label class="control-label" for="first_name" >First Name</label>
-                        <input class="form-control" type="text" id="first_name" name="first_name" readonly value="{{ user.first_name }}"/><br/>
+                        <input class="form-control" type="text" id="first_name" name="first_name" readonly
+                               value="{{ user.first_name }}"/><br/>
                         <label class="control-label" for="last_name">Last_name</label>
-                        <input class="form-control" type="text" id="last_name" name="last_name" value="{{ user.last_name }}" readonly/><br/>
+                        <input class="form-control" type="text" id="last_name" name="last_name"
+                               value="{{ user.last_name }}" readonly/><br/>
                         <label class="control-label" for="username" >Username</label>
-                        <input class="form-control" type="text" id="username" name="username" value="{{ user.username }}" readonly/><br/>
+                        <input class="form-control" type="text" id="username" name="username"
+                               value="{{ user.username }}" readonly/><br/>
                         <label class="control-label" for="email">Email</label>
-                        <input class="form-control" type="text" id="email" name="email" value="{{ user.email }}" readonly/><br/>
+                        <input class="form-control" type="text" id="email" name="email"
+                               value="{{ user.email }}" readonly/><br/>
                     </form>
+                    <button class="btn btn-info" id="profile-update-button" onclick="update_profile()">Submit</button>
                 {% else %}
                     <h5>Contact info</h5>
                     <p><b>Email:</b> {{ userprofile.user.email }}</p>

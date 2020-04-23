@@ -1,7 +1,9 @@
-//jQuery time
-var current_fs, next_fs, previous_fs; //fieldsets
-var left, opacity, scale; //fieldset properties which we will animate
-var animating; //flag to prevent quick multi-click glitches
+// import {show_alert} from 'mainapp/static/mainapp/js/main.js'
+
+
+let current_fs, next_fs, previous_fs; //fieldsets
+let left, opacity, scale; //fieldset properties which we will animate
+let animating; //flag to prevent quick multi-click glitches
 
 $(".next").click(function(){
     if(animating) return false;
@@ -59,7 +61,7 @@ $(".previous").click(function(){
     $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
 
     //show the previous fieldset
-    mydiv = document.getElementById("page_wrapper");
+    var mydiv = document.getElementById("page_wrapper");
     mydiv.classList.remove('col-lg-12');
     mydiv.classList.add('offset-md-2');
     mydiv.classList.add('col-md-8');
@@ -103,7 +105,7 @@ function readURL(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
-$("#imageUpload").change(function() {
+$("#profile_photo").change(function() {
     readURL(this);
 });
 
@@ -135,35 +137,6 @@ function selectCard(id) {
         if (was_selected === false){
             selected.value =  selected.value.concat(id.concat(','));
         }
-    }
-}
-
-function submitRegForm() {
-    let first_name, last_name, username, email, password1, password2, study_field, school;
-    first_name = document.getElementById('first_name').value;
-    last_name = document.getElementById('last_name').value;
-    username = document.getElementById('username').value;
-    email = document.getElementById('email').value;
-    password1 = document.getElementById('password1').value;
-    password2 = document.getElementById('password2').value;
-    study_field = document.getElementById('study_field').value;
-    school = document.getElementById('school').value;
-    let selected = get_selected().length;
-    if (first_name !== '' && last_name !== '' && username !== ''
-        && email !== '' && password1 !== '' && password2 !== ''
-        && study_field !== '' && school !== '') {
-        if (password1 === password2) {
-            if (selected === 0){
-                alert('You must select at least one cohort');
-            }else{
-                document.getElementById('msform').submit();
-                return false;
-            }
-        }else{
-            alert('Passwords do not match');
-        }
-    } else {
-        alert('Blank fields detected. Please fill in all required fields');
     }
 }
 
@@ -307,5 +280,108 @@ function style_previously_selected_cards(data){
                 selectCard(data[i].id.toString());
             }
         }
+    }
+}
+
+
+
+function submitRegForm() {
+    let email = document.getElementById('email').value;
+    let username =  document.getElementById('username').value;
+    let password1  = document.getElementById('password1').value;
+    let password2 = document.getElementById('password2').value;
+    let profile_photo = document.getElementById('profile_photo').value;
+    let first_name = document.getElementById('first_name').value;
+    let last_name = document.getElementById('last_name').value;
+    let study_field = document.getElementById('study_field').value;
+    let school = document.getElementById('school').value;
+    let cohorts = document.getElementById('selected_cohorts').value;
+    let selected = get_selected().length;
+    if (first_name !== '' && last_name !== '' && username !== ''
+        && email !== '' && password1 !== '' && password2 !== ''
+        && study_field !== '' && school !== '') {
+        if (password1 === password2) {
+            if (selected === 0){
+                show_alert("You must select at least 1 cohort")
+            }else{
+                $.ajax({
+                    method: "POST",
+                    url: "",
+                    data: {'email':email,'username':username,'password1':password1, 'password2':password2,
+                        'profile_photo':profile_photo,'first_name':first_name,'last_name':last_name,
+                        'study_field':study_field,'school':school,'cohorts':cohorts},
+                    success: function (data) {
+                        let message = data['message'];
+                        let code = data['code'];
+                        if (code === 0){
+                            console.log("Submitting form");
+                            document.getElementById('user-email').value = data['email'];
+                            let form = document.getElementById('email-confirmation-form');
+                            form.submit();
+                        }else{
+                            show_alert(message)
+                        }
+                    }
+                });
+            }
+        }else{
+            show_alert('Passwords do not match')
+        }
+    } else {
+        show_alert('Blank fields detected. Please fill in all required fields')
+    }
+
+}
+
+const show_alert = (message, alert_code=1) => {
+    let alert_class = get_alert_class(alert_code);
+    let container = document.getElementById('alert-container');
+    let content = `
+    <div class="alert ${alert_class} text-center alert-dismissible fade show" id="home-alert" role="alert">
+    <p id="home-alert-text">${message}</p>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+    `;
+
+    container.innerHTML += content;
+    setTimeout(function(){
+        $(".alert").alert('close');
+    },7000);
+};
+
+
+function get_alert_class(alert_code) {
+    if (alert_code === 0){
+        return "alert-success";
+    }else{
+        return "alert-danger";
+    }
+
+}
+
+function show_edit_email_form(){
+    let form = document.getElementById('edit-email-form');
+    form.removeAttribute('hidden')
+}
+
+function editEmail() {
+    let old_email = document.getElementById('email1');
+    let new_email = document.getElementById('email2');
+    if (old_email  && new_email) {
+        $.ajax({
+            method: "POST",
+            url: "edit",
+            data: {'email1': old_email, 'email2': new_email},
+            success: function (data) {
+                let code = data['code'];
+                let message = data['message'];
+                show_alert(message, code)
+            }
+        });
+
+    }else{
+        show_alert("The email field should not be empty")
     }
 }

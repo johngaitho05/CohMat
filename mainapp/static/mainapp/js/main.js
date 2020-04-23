@@ -10,7 +10,7 @@
 
 /* Set the width of the side navigation to 30% */
 function openNav() {
-    document.getElementById("mySidenav").style.width = "30%";
+    document.getElementById("mySidenav").style.width = "400px";
 }
 
 /* Set the width of the side navigation to 0 */
@@ -18,11 +18,20 @@ function closeNav() {
     document.getElementById("mySidenav").style.width = "0";
 }
 
+// highlight the link of the current page as active
+function styleActiveLink(linkId) {
+    let nav_links = document.getElementsByClassName('nav-link');
+    for (let i = 0; i < nav_links.length; i++) {
+        nav_links[i].classList.remove('active');
+        let to_style = document.getElementById(linkId);
+        to_style.classList.add('active');
+    }
+}
+
+// dynamically styling the button for joining recommended groups
 function styleJoinButton(){
     let checked_boxes = 0;
     let checkboxes = document.getElementsByClassName('coh-checker');
-    let button = document.getElementById('join-recommended');
-    let container = document.getElementById('recommended-groups');
     for(let i=0; i< checkboxes.length; i++) {
         if (checkboxes[i].checked === true){
             checked_boxes += 1
@@ -35,11 +44,12 @@ function styleJoinButton(){
     }
     else if(checked_boxes === 1){
         document.getElementById('join-help').innerHTML = "";
-       $("#join-recommended").css({"opacity":"1","margin-top":"160px"});
+        $("#join-recommended").css({"opacity":"1","margin-top":"160px"});
         $("#recommended-groups").css({"margin-top":"50px"});
     }
 }
 
+// submitting a new post (question)
 function submit_question(){
     let content = document.getElementById('question-text');
     let group = document.getElementById('question-group');
@@ -54,6 +64,7 @@ function submit_question(){
     }
 }
 
+// Opening an input when the user clicks on 'give your answer' button
 function openAnswerInput(id){
     let answer_input = document.getElementById('answer-input'.concat(id));
     let send_button = document.getElementById('send-answer'.concat(id));
@@ -65,24 +76,75 @@ function openAnswerInput(id){
     send_button.style.left = '0';
 }
 
-function styleactivelink(link_id) {
-    let navlinks = document.getElementsByClassName('nav-link');
-    for (let i = 0; i < navlinks.length; i++) {
-        navlinks[i].classList.remove('active');
-        let to_style = document.getElementById(link_id);
-        to_style.classList.add('active');
-    }
-}
 
 function allow_profile_editing(){
     // find all inputs in the page
-    to_edit = document.getElementsByTagName("input");
+    let to_edit = document.getElementsByTagName("input");
     // make all the inputs editable by removing the readonly attribute
     for (let i = 0; i< to_edit.length; i++){
         to_edit[i].removeAttribute('readonly');
     }
 }
 
-function edit_profile(){
+// Submitting the edited profile details using ajax
+function update_profile(){
+    let current_interest = document.getElementById('interest-input').value;
+    let first_name = document.getElementById('first_name').value;
+    let last_name = document.getElementById('last_name').value;
+    let username = document.getElementById('username').value;
+    let email = document.getElementById('email').value;
+
+    if (first_name && last_name && username && email){
+        $.ajax({
+            method: "POST",
+            url: "update",
+            data: {
+                'first_name':first_name,
+                'last_name':last_name,
+                'username':username,
+                'email':email,
+                'current_interest':current_interest,
+            },
+            success: function(data) {
+                var message = data['message'];
+                var code = data['code'];
+                show_alert(message, code)
+            }
+        });
+    }else{
+        show_alert("Blank fields detected!")
+    }
 
 }
+
+
+// Show alert based on the message received from the server after ajax form submission
+function show_alert(message, alert_code=1){
+    let alert_class = get_alert_class(alert_code);
+    let container = document.getElementById('alert-container');
+    let content = `
+    <div class="alert ${alert_class} text-center alert-dismissible fade show" id="home-alert" role="alert">
+    <p id="home-alert-text">${message}</p>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+    `;
+    // Close the alert after 10 seconds (10000 milliseconds)
+    container.innerHTML += content;
+    setTimeout(function(){
+        $(".alert").alert('close');
+    },5000);
+}
+
+
+function get_alert_class(alert_code) {
+    if (alert_code === 0){
+        return "alert-success";
+    }else{
+        return "alert-danger";
+    }
+
+}
+
+

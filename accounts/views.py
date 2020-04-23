@@ -1,3 +1,5 @@
+import re
+
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
@@ -32,11 +34,12 @@ def anonymous_required(function=None, redirect_url=None):
     return actual_decorator
 
 
+@csrf_exempt
 @anonymous_required
 def register_view(request):
     cohorts = Cohort.objects.all()
     study_fields = Cohort.objects.filter(level=0)
-    if request.method == 'POST':
+    if request.is_ajax():
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         username = request.POST['username']
@@ -45,38 +48,43 @@ def register_view(request):
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
         school = request.POST['school']
-        groups = create_groups_list(request.POST['selected_cohorts'])
+        groups = create_groups_list(request.POST['cohorts'])
         if first_name and last_name and username and email and study_field and pass1 and pass2 and groups and school:
+            if not is_valid_email(email):
+                response = {"message": "Invalid email address", "code": 1}
+                return JsonResponse(response)
             if pass1 == pass2:
+                if not email_is_unique(email):
+                    response = {'message': "There exists an account associated with that email address."
+                                           "Please login or use a different email address", 'code': 1}
+                    return JsonResponse(response)
+
                 try:
-                    User.objects.get(email=email)
-                    return render(request, 'accounts/register.html',
-                                  {'error_message': "That email is already registered. Please login",
-                                   'cohorts': cohorts, 'study_fields': study_fields})
+                    User.objects.get(username=username)
+                    response = {'message': "That username is already taken.", 'code': 1}
+                    return JsonResponse(response)
                 except User.DoesNotExist:
+                    new_user = User(first_name=first_name, last_name=last_name,
+                                    email=email, username=username)
+                    new_user.set_password(pass1)
+                    new_user.is_active = False
+                    new_user.save()
+                    # create user profile
                     try:
-                        User.objects.get(username=username)
-                        return render(request, 'accounts/register.html',
-                                      {'error_message': "That username is already taken.",
-                                       'cohorts': cohorts, 'study_fields': study_fields})
-                    except User.DoesNotExist:
-                        new_user = User(first_name=first_name, last_name=last_name,
-                                        email=email, username=username)
-                        new_user.set_password(pass1)
-                        new_user.is_active = False
-                        new_user.save()
-                        # create user profile
-                        try:
-                            profile_photo = request.FILES['profile_photo']
-                            create_profile(new_user, study_field, groups, school, profile_photo)
-                        except MultiValueDictKeyError:
-                            create_profile(new_user, study_field, groups, school)
-                        # add channels through which user can chat one-on-one with each member
-                        add_chat_rooms(new_user)
-                        increment_group_members(groups)
+                        profile_photo = request.FILES['profile_photo']
+                        new_profile = create_profile(new_user, study_field, groups, school, profile_photo)
+                    except MultiValueDictKeyError:
+                        new_profile = create_profile(new_user, study_field, groups, school)
+
+                    # add channels through which user can chat one-on-one with each member
+                    add_chat_rooms(new_user)
+                    increment_group_members(groups)
+
+                    # send a confirmation link to the user email
+                    try:
                         current_site = get_current_site(request)
                         email_subject = 'Activate Your Account'
-                        message = render_to_string('accounts/acc_active_email.html', {
+                        message = render_to_string('accounts/reg-email-body.html', {
                             'user': new_user,
                             'domain': current_site.domain,
                             'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
@@ -85,16 +93,23 @@ def register_view(request):
                         to_email = email
                         email = EmailMessage(email_subject, message, to=[to_email])
                         email.send()
-                        return HttpResponse(
-                            'We have sent you an email, please confirm your email address to complete registration')
+                        response = {'message': 'Success', 'code': 0, 'email': to_email}
+                        return JsonResponse(response)
+                    except:
+                        new_user.delete()
+                        if new_profile:
+                            new_profile.delete()
+                        response = {'message': 'Something went wrong when validating your email. '
+                                               'Please provide valid school email then try'
+                                               ' again. If the problem persists, contact our support team ',
+                                    'code': 1}
+                        return JsonResponse(response)
             else:
-                return render(request, 'accounts/register.html',
-                              {'error_message': "Password do not match",
-                               'cohorts': cohorts, 'study_fields': study_fields})
+                response = {'message': 'Password do not match', 'code': 1}
+                return JsonResponse(response)
         else:
-            return render(request, 'accounts/register.html',
-                          {'error_message': "Check missing fields",
-                           'cohorts': cohorts, 'study_fields': study_fields})
+            response = {'message': "Blank fields detected", "code": 1}
+            return JsonResponse(response)
 
     return render(request, 'accounts/register.html', {'cohorts': cohorts, 'study_fields': study_fields})
 
@@ -124,6 +139,7 @@ def create_profile(user, field_id, groups, school, profile_photo=None):
     else:
         new_profile = UserProfile(user=user, study_field=study_field, user_groups=groups, school=school)
     new_profile.save()
+    return new_profile
 
 
 # saving the uploaded profile picture
@@ -153,6 +169,7 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
         return redirect('mainapp:homeView')
+    return redirect('mainapp:homeView')
 
 
 # groups to recommend during registration based on the study_field chosen
@@ -197,3 +214,74 @@ def increment_group_members(groups):
         group = get_object_or_404(Cohort, id=group)
         group.no_of_members += 1
         group.save()
+
+
+@anonymous_required
+def email_confirmation_view(request):
+    if request.method == 'POST':
+        return render(request, 'accounts/confirm-email.html', {'user': request.POST['email']})
+    # return redirect('accounts:register')
+    return render(request, 'accounts/confirm-email.html', {'email': 'johnyk@gmail.com'})
+
+
+def edit_email(request):
+    if request.is_ajax():
+        old_email = request.POST['email1']
+        new_email = request.POST['email2']
+        if old_email and new_email:
+            if not is_valid_email(new_email):
+                response = {"message": "Invalid email address. Please provide a valid school email", 'code': 1}
+                return JsonResponse(response)
+
+            user = User.objects.get(email=old_email)
+            if send_link_via_mail(request, user, new_email):
+                if email_is_unique(new_email):
+                    user.email = new_email
+                    user.save()
+                    response = {'message': "Your email address was updated successfully"
+                                           " and an activation link sent to the new email", 'code':0}
+                    return JsonResponse(response)
+                else:
+                    response = {'message': "There exists an account associated with that email address."
+                                           "Please login or use a different email address", 'code': 1}
+                    return JsonResponse(response)
+            else:
+                response = {'message': 'Something went wrong when validating your email. '
+                                       'Please provide a valid school email and then try'
+                                       ' again. If the problem persists, contact our support team ',
+                            'code': 1}
+                return JsonResponse(response)
+    return Http404("Bad Request")
+
+
+def is_valid_email(email):
+    regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
+    if re.search(regex, email):
+        return True if '.ac.ke' in email or '.edu' in email else False
+    return False
+
+
+def email_is_unique(email):
+    try:
+        user = User.objects.get(email=email)
+        return False
+    except User.DoesNotExist:
+        return True
+
+
+def send_link_via_mail(request, user, email):
+    try:
+        current_site = get_current_site(request)
+        email_subject = 'Activate Your Account'
+        message = render_to_string('accounts/reg-email-body.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+        email = EmailMessage(email_subject, message, to=[email])
+        email.send()
+        return True
+    except:
+
+        return False
