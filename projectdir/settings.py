@@ -80,7 +80,7 @@ ASGI_APPLICATION = 'projectdir.routing.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cohmatdb',
+        'NAME': 'collnetdb',
         'USER': 'postgres',
         'PASSWORD': 'jnjg5//9',
         'HOST': 'localhost',
