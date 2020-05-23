@@ -66,6 +66,7 @@ function submit_question(){
 
 // Opening an input when the user clicks on 'give your answer' button
 function openAnswerInput(id){
+    let otherForms = $('.answer-form');
     let answer_input = document.getElementById('answer-input'.concat(id));
     let send_button = document.getElementById('send-answer'.concat(id));
     answer_input.style.width = '80%';
@@ -74,6 +75,7 @@ function openAnswerInput(id){
     answer_input.placeholder = 'Type your answer here';
     send_button.style.opacity = 'unset';
     send_button.style.left = '0';
+    answer_input.parentElement.setAttribute('id','activeAnsForm')
 }
 
 
@@ -146,5 +148,4 @@ function get_alert_class(alert_code) {
     }
 
 }
-
 

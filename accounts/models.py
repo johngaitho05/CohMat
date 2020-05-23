@@ -20,6 +20,8 @@ class UserProfile(models.Model):
                                          related_name='user_current_interest')
     school = models.CharField(max_length=250)
     bio = models.TextField(null=True)
+    messages_count = models.IntegerField(default=0)
+    notifications_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.username

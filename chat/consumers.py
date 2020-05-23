@@ -6,48 +6,51 @@ from channels.generic.websocket import WebsocketConsumer
 from datetime import datetime
 import json
 from .models import Message, ChatRoom
-from .views import update_last_message, other_user_party
-
+from .views import update_last_message, other_user_party, get_active_contact
 
 User = get_user_model()
 
 
 class ChatConsumer(WebsocketConsumer):
-    def messages_to_json(self,messages):
+    def messages_to_json(self, messages):
         result = []
         for message in messages:
             result.append(self.message_to_json(message))
         return result
 
-    def message_to_json(self,message):
+    def message_to_json(self, message):
         return {
             'author': message.author.username,
             'content': message.content,
             'time': str(datetime.strftime(message.timestamp, '%H:%M'))
         }
 
-    def new_message(self,data):
+    def new_message(self, data):
         author = data['from']
         content = data['message']
         room_name = data['chat_room']
-        author_user = get_object_or_404(User, username=author)
-        current_time = datetime.strptime(data['current_time'], '%d-%m-%Y %H:%M:%S')
-        message = Message.objects.create(author=author_user,
-                                         content=content, chat_room=room_name, timestamp=current_time)
-        update_last_message(room_name)
-        party = other_user_party(author_user.id, room_name)
-        room = ChatRoom.objects.get(name=room_name)
-        if party == 'A':
-            room.unread_A += 1
-        elif party == 'B':
-            room.unread_B += 1
-        room.save()
-        content = {
-            'command': 'new_message',
-            'message': self.message_to_json(message),
-            'last_text': message.sliced_text()
-        }
-        self.send_chat_message(content)
+        author_user = User.objects.filter(username=author)
+        if author_user.count() == 1:
+            author_user = author_user.first()
+            message = Message.objects.create(author=author_user, content=content, chat_room=room_name)
+            update_last_message(room_name)
+            party = other_user_party(author_user.id, room_name)
+            room = ChatRoom.objects.get(name=room_name)
+            if party == 'A':
+                room.unread_A += 1
+            elif party == 'B':
+                room.unread_B += 1
+            room.save()
+            recipient = get_active_contact(author_user.id, room_name)
+            recipient.userprofile.messages_count += 1
+            recipient.userprofile.save()
+            content = {
+                'command': 'new_message',
+                'message': self.message_to_json(message),
+                'last_text': message.sliced_text()
+            }
+            self.send_chat_message(content)
+
     commands = {
         # 'fetch_messages':fetch_messages,
         'new_message': new_message,
@@ -72,7 +75,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         data = json.loads(text_data)
-        self.commands[data['command']](self,data)
+        self.commands[data['command']](self, data)
 
     def send_chat_message(self, message):
         async_to_sync(self.channel_layer.group_send)(
@@ -83,20 +86,9 @@ class ChatConsumer(WebsocketConsumer):
             }
         )
 
-    def send_message(self,message):
+    def send_message(self, message):
         self.send(text_data=json.dumps(message))
 
     def chat_message(self, event):
         message = event['message']
         self.send(text_data=json.dumps(message))
-
-
-
-
-
-
-
-
-
-
-

@@ -17,7 +17,7 @@ class Contact(models.Model):
 class Message(models.Model):
     author = models.ForeignKey(User, related_name="user_messages",on_delete=models.CASCADE)
     content = models.TextField()
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now=True)
     chat_room = models.CharField(max_length=50)
 
     def __str__(self):

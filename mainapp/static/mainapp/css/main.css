@@ -93,6 +93,15 @@ body{
 #navbarItems .active:hover{
     text-decoration: none;
 }
+#notification-count{
+    padding: 3px 5px;
+    text-align: center;
+    font-size: 12px;
+    color: #29ff75;
+    font-weight: 700;
+    background-color: #ff002f;
+    border-radius:50%;
+}
 #main-row{
     padding: 8px;
     margin: 0 10px 10px 10px;
@@ -316,9 +325,9 @@ body{
     cursor: pointer;
 }
 
-.answer-form{
-    min-height: 0;
-}
+/*.answer-form{*/
+/*    min-height: 0;*/
+/*}*/
 
 .answer-input{
     width: 0;

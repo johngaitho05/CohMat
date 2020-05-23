@@ -168,11 +168,15 @@
         <script type="text/javascript">
             let roomName = {{ room_name_json }};
             let username = {{ username_json }};
-
-            let chatSocket = new ReconnectingWebSocket(
-                'ws://' + window.location.host +
-                '/ws/messaging/chat/' + roomName);
-
+            loc = window.location;
+            wsStart  = 'ws://';
+            let form = $('#form');
+            let chatContainer = $('#chat-items');
+            if (loc.protocol === 'https:'){
+                wsStart = 'wss://'
+            }
+            endpoint = wsStart + loc.host + loc.pathname;
+            let chatSocket = new ReconnectingWebSocket(endpoint);
             chatSocket.onmessage = function(e) {
                 let data = JSON.parse(e.data);
                 let message = data['message'];

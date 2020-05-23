@@ -4,17 +4,17 @@
 
 {% block body %}
     <!--Recommendable groups pane-->
-    <div class="col-md-3 column hidden-sm hidden-xs">
+    <div class="col-md-3 column d-none d-md-block">
         <div id="recommended-groups-container">
             <p class="column-title">Groups you may like</p>
             <form method="post" action="{% url 'mainapp:join' %}">
                 {% csrf_token %}
                 <button class="btn btn-outline-primary" type="submit" id="join-recommended">Join Selected</button>
                 {% if to_recommend %}
-                <h5 id="join-help">Select a group to join</h5>
-                    {% else %}
-                <p >No recommendable groups found</p>
-            {% endif %}
+                    <h5 id="join-help">Select a group to join</h5>
+                {% else %}
+                    <p >No recommendable groups found</p>
+                {% endif %}
                 <ul id="recommended-groups">
                     {% for cohort in to_recommend %}
                         <li class="panel-title">
@@ -70,7 +70,13 @@
                                     <div class="answer-item">
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
-                                        <p class="float-right answer-time">{{ answer.time }}</p>
+                                        {% if answer.timestamp.date == today %}
+                                            <p class="float-right answer-time">{{ answer.timestamp.time }}</p>
+                                        {% elif answer.timestamp.date == yesterday %}
+                                            <p class="float-right answer-time"> Yesterday {{ answer.timestamp.time }}</p>
+                                        {% else %}
+                                            <p class="float-right answer-time">{{ answer.timestamp }}</p>
+                                        {% endif %}
                                         <p class="answer-content ">{{ answer.content }}</p>
                                         <p class="reply-trigger">Reply</p>
                                     </div>
@@ -83,3 +89,7 @@
         {% endfor %}
     </div>
 {% endblock %}
+
+<script>
+
+</script>

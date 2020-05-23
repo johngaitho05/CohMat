@@ -46,7 +46,7 @@ class Answer(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     content = models.TextField()
-    time = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
 
 class Reply(models.Model):

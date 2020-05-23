@@ -12,7 +12,7 @@
 </head>
 <body id="body">
 <!--Navigation bar-->
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light navbar-fixed-top">
     <a class="navbar-brand" href="{% url 'mainapp:homeView' %}"><img class="img-fluid" src="{% static 'images/cohmat_home_logo.PNG' %}"
                                                                      alt="CohMat"/></a>
     <button class="navbar-toggler pull-right" type="button" data-toggle="collapse" data-target="#navbarItems"
@@ -45,7 +45,12 @@
                 <a class="nav-link" id="groups_link" href="{% url 'mainapp:groupsView' %}"><i class="fas fa-users"></i> Groups</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="notifications_link" href="{% url 'mainapp:notificationsView' %}"><i class="fas fa-bell"></i> Notifications</a>
+                <a class="nav-link" id="notifications_link" href="{% url 'mainapp:notificationsView' %}">
+
+                        {% if user.userprofile.notifications_count != 0 %}
+                            <sup id="notification-count">{{ user.userprofile.notifications_count }}</sup>
+                        {% endif %}
+                    <i class="fas fa-bell"></i> Notifications</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="messages_link" href="{% url 'mainapp:messagesView' %}"><i class="fas fa-comment"></i> Messages</a>
@@ -88,7 +93,7 @@
     {% endblock %}
     <!--Chatting pane-->
     {% block quick_messaging %}
-        <div class="col-md-4 column hidden-sm hidden-xs">
+        <div class="col-md-4 column d-none d-md-block">
             <div id="quick-chat-panel">
                 <p class="column-title">One-on-one chat </p>
                 <div id="column-3-subtitles">
@@ -157,16 +162,22 @@
     </div>
 </div>
 <div class="modal loader"></div>
+<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
 <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
 <script type="text/javascript" src="{% static 'mainapp/js/main.js' %}"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function(){
         styleActiveLink('{{ active_link }}');
+        $('form').keypress(function(event){
+            if(event.which === 13)
+                $(this).submit();
+        });
     });
     $body = $("body");
 
@@ -174,6 +185,48 @@
         ajaxStart: function() { $body.addClass("loading");    },
         ajaxStop: function() { $body.removeClass("loading"); }
     });
+
+    // websocket scripts
+    loc = window.location;
+    console.log(loc);
+    wsStart  = 'ws://';
+    if (loc.protocol === 'https:'){
+        wsStart = 'wss://'
+    }
+    endpoint = wsStart + loc.host + loc.pathname;
+    let socket = new ReconnectingWebSocket(endpoint);
+    socket.onmessage = function(e){
+        let data = JSON.parse(e.data);
+        let username =  data['notifierUsername'];
+        if(username !== '{{ user.username }}'){
+            let counter = $('#notification-count');
+            counter.text(parseInt(counter.text())+1)
+        }else{
+            window.location = '/';
+        }
+    };
+    socket.onopen= function(e){
+        $('.answer-form').submit(function(event){
+            event.preventDefault();
+            let ans = $(this).find('textarea[name=answer]').val();
+            let quizId = $(this).find('input[name=question]').val()
+            let data = {
+                'type':'answer',
+                'questionId': quizId,
+                'answer':ans
+            };
+            console.log(data);
+            socket.send(JSON.stringify(data));
+            {#form[0].reset()#}
+        })
+    };
+    socket.onerror= function(e){
+        console.log("error", e)
+    };
+    socket.onclose= function(e){
+        console.log("close", e)
+    }
+
 </script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 import json
 import random
+from django.utils import timezone
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -15,7 +17,6 @@ from .models import Cohort, Question, Notification, Answer, Reply
 from accounts.models import UserProfile
 from data_structures.Searching.Searching import binary_search
 from data_structures.LinkedLists.SingleLinkedList import SingleLinkedList
-from accounts.views import handle_uploaded_file
 from accounts.views import increment_group_members
 
 
@@ -29,12 +30,16 @@ class HomeView(ListView):
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         data = get_user_data(self.request.user)
+        today = timezone.now()
+        yesterday = today - timezone.timedelta(days=1)
         context.update({
             'active_link': 'home_link',
             'to_recommend': data['to_recommend'],
             'contacts': data['contacts'],
             'newsfeed': data['newsfeed'],
-            'user_cohorts': data['user_cohorts']
+            'user_cohorts': data['user_cohorts'],
+            'today': today.date(),
+            'yesterday': yesterday
         })
         return context
 
@@ -72,12 +77,23 @@ def messagesView(request):
                    'contacts': data['contacts']})
 
 
-@login_required
-def notificationsView(request):
-    data = get_user_data(request.user)
-    return render(request, 'mainapp/notifications.html',
-                  {'active_link': 'notifications_link',
-                   'contacts': data['contacts']})
+@method_decorator(login_required, name='dispatch')
+class NotificationsView(ListView):
+    template_name = 'mainapp/notifications.html'
+    context_object_name = 'notifications'
+    model = Notification
+
+    def get_context_data(self, **kwargs):
+        data = get_user_data(self.request.user)
+        profile = self.request.user.userprofile
+        profile.notifications_count=0
+        profile.save()
+        context = super(NotificationsView, self).get_context_data(**kwargs)
+        context.update({
+            'active_link': 'notifications_link',
+            'contacts': data['contacts']
+        })
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
@@ -110,7 +126,7 @@ def get_user_data(user):
     newsfeed_list = [Question.objects.get(id=int(quiz_id)) for quiz_id in newsfeed_list.display_list()]
     newsfeed_dict = {}
     for quiz in newsfeed_list[0:30]:
-        answers = Answer.objects.filter(question=quiz).order_by('-time')
+        answers = Answer.objects.filter(question=quiz).order_by('-timestamp')
         newsfeed_dict.update({quiz: answers})
     leaf_cohort = user.userprofile.study_field
     all_cohorts = leaf_cohort.get_descendants(include_self=False)
@@ -189,35 +205,8 @@ def add_answer(request):
     return redirect('mainapp:homeView')
 
 
-@csrf_exempt
-@login_required
-def update_profile(request):
-    if request.is_ajax():
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        username = request.POST['username']
-        email = request.POST['email']
-        current_interest_id = request.POST['current_interest']
-        print(current_interest_id)
-        current_interest = Cohort.objects.get(id=current_interest_id) if current_interest_id else None
-        basic_info = {'first_name': first_name, 'last_name': last_name, 'username': username,
-                      'email': email}
-        profile_info = {'current_interest': current_interest}
-        user = request.user
-        try:
-            profile = UserProfile.objects.get(user=user)
-            for (key, value) in basic_info.items():
-                setattr(user, key, value)
-            user.save()
-            for (key, value) in profile_info.items():
-                setattr(profile, key, value)
-            profile.save()
-            response = {'code': 0, 'message': 'Successfully Updated'}
-            return JsonResponse(response)
-        except:
-            response = {'code': 1, 'message': 'Something went wrong!'}
-            return JsonResponse(response)
-
-    else:
-        response = {'code': 1, 'message': 'Unexpected request type'}
-        return JsonResponse(response)
+# saving the uploaded media file
+def handle_uploaded_file(file, desired_location):
+    with open(settings.MEDIA_ROOT + '/' + desired_location + '/' + file.name, 'wb+') as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)
