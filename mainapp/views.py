@@ -1,10 +1,10 @@
 import json
 import random
+
+from django.db.models import Count
 from django.utils import timezone
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.datastructures import MultiValueDictKeyError
@@ -22,11 +22,12 @@ from accounts.views import increment_group_members
 local_tz = 'Africa/Nairobi'
 timezone.activate(local_tz)
 
+
 @method_decorator(login_required,
                   name='dispatch')
 class HomeView(ListView):
     template_name = 'mainapp/home.html'
-    context_object_name = 'questions_list'
+    context_object_name = 'quiz_and_ans'
     model = Question
 
     def get_context_data(self, **kwargs):
@@ -38,7 +39,6 @@ class HomeView(ListView):
             'active_link': 'home_link',
             'to_recommend': data['to_recommend'],
             'contacts': data['contacts'],
-            'newsfeed': data['newsfeed'],
             'user_cohorts': data['user_cohorts'],
             'today': today.date(),
             'yesterday': yesterday
@@ -46,7 +46,10 @@ class HomeView(ListView):
         return context
 
     def get_queryset(self):
-        return Question.objects.all()
+        questions = get_user_data(self.request.user)['questions']
+        qs = Question.objects.annotate(number_of_answers=Count('answer'))
+        t = timezone.now()
+        return [(q, Answer.objects.filter(question=q).order_by('-time')) for q in qs if q in questions]
 
 
 @method_decorator(login_required, name='dispatch')
@@ -115,21 +118,20 @@ class ProfileView(DetailView):
 
 
 def get_user_data(user):
-    contacts = get_contacts(user)
-    user_cohorts = user.userprofile.user_groups
-    user_cohorts = [Cohort.objects.get(id=cohort) for cohort in user_cohorts]
-    newsfeed_list = SingleLinkedList()
+    contacts = get_contacts(user)  # fetches users to display at quick-chat pane
+    user_cohorts = user.userprofile.user_groups  # IDs for cohorts that the user has joined
+    user_cohorts = [Cohort.objects.get(id=cohort) for cohort in user_cohorts]  # getting real cohorts from the ids
+    '''using a linked_list to dynamically store questions/posts that can be displayed to the user(newsfeed)'''
+    questions_list = SingleLinkedList()
+    # Iterate through all user_groups and get the last 100 posts for each
     for cohort in user_cohorts:
-        newsfeeds = Question.objects.filter(target_cohort=cohort)
-        for newsfeed in newsfeeds:
-            newsfeed_list.insert_at_end(newsfeed.id)
-    newsfeed_list.merge_sort()
-    newsfeed_list.reverse_list()
-    newsfeed_list = [Question.objects.get(id=int(quiz_id)) for quiz_id in newsfeed_list.display_list()]
-    newsfeed_dict = {}
-    for quiz in newsfeed_list[0:30]:
-        answers = Answer.objects.filter(question=quiz).order_by('-timestamp')
-        newsfeed_dict.update({quiz: answers})
+        questions = Question.objects.filter(target_cohort=cohort).order_by('-time')[:100]
+        if questions:
+            for q in questions:
+                questions_list.insert_at_end(q.id)
+    questions_list = sorted([Question.objects.get(id=int(quiz_id)) for
+                             quiz_id in questions_list.display_list()], reverse=True)
+
     leaf_cohort = user.userprofile.study_field
     all_cohorts = leaf_cohort.get_descendants(include_self=False)
     to_recommend = []
@@ -137,9 +139,8 @@ def get_user_data(user):
         if cohort not in user_cohorts:
             to_recommend.append(cohort)
     random.shuffle(to_recommend)
-    to_recommend = to_recommend
-    return {'to_recommend': to_recommend[0:30], 'contacts': contacts,
-            'newsfeed': newsfeed_dict, 'user_cohorts': user_cohorts}
+    return {'to_recommend': to_recommend[:100], 'contacts': contacts,
+            'questions': questions_list[:100], 'user_cohorts': user_cohorts}
 
 
 @login_required
@@ -212,3 +213,6 @@ def handle_uploaded_file(file, desired_location):
     with open(settings.MEDIA_ROOT + '/' + desired_location + '/' + file.name, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
+
+
+

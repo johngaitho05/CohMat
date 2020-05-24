@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans|Patua+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bentham&family=Lobster&family=Marmelad&family=Rancho&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'mainapp/css/main.css' %}"/>
 </head>
 <body id="body">
@@ -95,7 +96,7 @@
     <!--Chatting pane-->
     {% block quick_messaging %}
         <div class="col-md-4 column d-none d-md-block">
-            <div id="quick-chat-panel">
+            <div id="quick-chat-panel" class="info-panel">
                 <p class="column-title">One-on-one chat </p>
                 <div id="column-3-subtitles">
                     <table class=" table-condensed">
@@ -198,18 +199,27 @@
     let socket = new ReconnectingWebSocket(endpoint);
     socket.onmessage = function(e){
         let data = JSON.parse(e.data);
-        let username =  data['notifierUsername'];
-        let counter = $('#notification-count');
-        if(username !== '{{ user.username }}'){
-            if (counter.length){
-                counter.text(parseInt(counter.text())+1)
-            }else{
-                console.log(data);
-                $('#notifications-badge').html("<sup id='notification-count'>1</sup>");
+        let type = data['command'];
+        if(type === 'new_answer'){
+            let quiz_id = 'quiz_' + data['quiz_id'];
+            let username =  data['notifierUsername'];
+            let counter = $('#notification-count');
+            if(username !== '{{ user.username }}') {
+                if (counter.length) {
+                    counter.text(parseInt(counter.text()) + 1)
+                } else {
+                    console.log(data);
+                    $('#notifications-badge').html("<sup id='notification-count'>1</sup>");
+                }
             }
-        }else{
-            console.log(data);
+            console.log(quiz_id);
+            let quiz = $('#'+quiz_id);
+            let counter2 = quiz.find($('.ans-counter'));
+            counter2.text(parseInt(counter2.text())+1);
+        }else if(type === 'new_message'){
+            console.log(data)
         }
+
     };
     socket.onopen= function(e){
         $('.answer-form').submit(function(event){
@@ -217,13 +227,13 @@
             let ans = $(this).find('textarea[name=answer]').val();
             let quizId = $(this).find('input[name=question]').val()
             let data = {
-                'type':'answer',
+                'command':'new_answer',
                 'questionId': quizId,
                 'answer':ans
             };
             console.log(data);
             socket.send(JSON.stringify(data));
-            ans.reset()
+            $(this)[0].reset();
         })
     };
     socket.onerror= function(e){

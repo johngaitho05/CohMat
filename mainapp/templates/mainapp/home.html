@@ -5,7 +5,7 @@
 {% block body %}
     <!--Recommendable groups pane-->
     <div class="col-md-3 column d-none d-md-block">
-        <div id="recommended-groups-container">
+        <div id="recommended-groups-container" class="info-panel">
             <p class="column-title">Groups you may like</p>
             <form method="post" action="{% url 'mainapp:join' %}">
                 {% csrf_token %}
@@ -30,9 +30,10 @@
     <!--News feed pane-->
     <div class="col-md-5 column" id="news-feed">
         <p class="column-title">News feed</p>
-        {% for quiz,answers in newsfeed.items %}
-            <div class="card">
-                <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}  <span>></span> {{ quiz.target_cohort }}<small class="post-time float-right">{{ quiz.time }}</small></p>
+        {% for quiz, answers in quiz_and_ans %}
+            <div class="card" id="quiz_{{ quiz.id }}">
+                <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}
+                    <span>></span> {{ quiz.target_cohort }}<small class="post-time float-right">{{ quiz.ago_time }}</small></p>
                 <p>{{quiz.content}}</p>
                 {%  if quiz.image %}
                     <a href="{{ quiz.image.url }}"><img class="img-fluid" src="{{ quiz.image.url }}" alt="Missing Image"/></a>
@@ -41,10 +42,10 @@
                 <ul class="post-footer">
                     <li><a href="#" data-toggle="modal" data-target="#answersModal{{ quiz.id }}"><i class="fas fa-comment">
 
-                    </i> {% if quiz.total_answers == 1 %}
-                        1 Answer
+                    </i> {% if quiz.number_of_answers == 1 %}
+                        <span class="ans-counter">1</span> Answer
                     {% else %}
-                        {{ quiz.total_answers }} Answers
+                        <span class="ans-counter">{{ quiz.number_of_answers }}</span> Answers
                     {% endif %}</a></li>
                     <li class="float-right give-answer" onclick="openAnswerInput('{{ quiz.id }}')">Give your answer</li>
                 </ul>
@@ -70,13 +71,7 @@
                                     <div class="answer-item">
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
-                                        {% if answer.timestamp.date == today %}
-                                            <p class="float-right answer-time">{{ answer.timestamp.time }}</p>
-                                        {% elif answer.timestamp.date == yesterday %}
-                                            <p class="float-right answer-time"> Yesterday {{ answer.timestamp.time }}</p>
-                                        {% else %}
-                                            <p class="float-right answer-time">{{ answer.timestamp }}</p>
-                                        {% endif %}
+                                        <p class="float-right answer-time">{{ answer.ago_time }}</p>
                                         <p class="answer-content ">{{ answer.content }}</p>
                                         <p class="reply-trigger">Reply</p>
                                     </div>

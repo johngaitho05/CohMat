@@ -144,13 +144,13 @@ def get_active_contact(user_id, room_name):
 
 
 def get_active_contact_id(user_id, room_name):
-    id_list = room_name.split('A')
-    if int(id_list[0]) == user_id:
-        return int(id_list[1])
-    elif int(id_list[1]) == user_id:
-        return int(id_list[0])
-    else:
-        return -1
+    if user_id and room_name:
+        id_list = room_name.split('A')
+        if int(id_list[0]) == user_id:
+            return int(id_list[1])
+        elif int(id_list[1]) == user_id:
+            return int(id_list[0])
+    return -1
 
 
 def other_user_party(user_id, room_name):

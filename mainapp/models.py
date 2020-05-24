@@ -2,7 +2,7 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
-
+from projectdir.utils import ago
 
 User = get_user_model()
 
@@ -32,21 +32,31 @@ class Question(models.Model):
     total_answers = models.IntegerField(default=0)
     image = models.FileField(upload_to='images', blank=True, default='')
 
+    def ago_time(self):
+        return ago(self.time)
+
     def __str__(self):
         return self.author.username + ' >> ' + self.target_cohort.title
 
 
 class Notification(models.Model):
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='notifier')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='toNotify')
     content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
+
+    def ago_time(self):
+        return ago(self.time)
 
 
 class Answer(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     content = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    time = models.DateTimeField(auto_now_add=True)
+
+    def ago_time(self):
+        return ago(self.time)
 
 
 class Reply(models.Model):
@@ -55,10 +65,6 @@ class Reply(models.Model):
     content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
 
-
-
-
-
-
-
+    def ago_time(self):
+        return ago(self.time)
 

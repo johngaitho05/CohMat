@@ -313,7 +313,7 @@ def update_profile(request):
         current_interest_id = request.POST['current_interest']
         current_interest = Cohort.objects.get(id=current_interest_id) if current_interest_id else None
         if first_name and last_name and username:
-            if username_is_unique(username):
+            if username_is_unique(username) or request.user.username == username:
                 basic_info = {'first_name': first_name, 'last_name': last_name, 'username': username}
                 profile_info = {'current_interest': current_interest}
                 user = request.user

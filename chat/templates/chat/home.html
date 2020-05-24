@@ -175,8 +175,10 @@
             if (loc.protocol === 'https:'){
                 wsStart = 'wss://'
             }
-            endpoint = wsStart + loc.host + loc.pathname;
-            let chatSocket = new ReconnectingWebSocket(endpoint);
+            endpoint1 = wsStart + loc.host + loc.pathname;
+            endpoint2 = wsStart  + loc.host + '/';
+            let chatSocket = new ReconnectingWebSocket(endpoint1);
+            let notifySocket = new ReconnectingWebSocket(endpoint2);
             chatSocket.onmessage = function(e) {
                 let data = JSON.parse(e.data);
                 let message = data['message'];
@@ -217,13 +219,16 @@
                 let datetime = new Date();
                 let current_time = datetime.getDate()+ '-'+(datetime.getMonth()+1)+'-'+datetime.getFullYear()+ ' '
                     +datetime.getHours()+':'+datetime.getMinutes()+':'+datetime.getSeconds();
-                chatSocket.send(JSON.stringify({
-                    'message': message,
+                {#notifySocket.send#}
+                let toSend =JSON.stringify({
                     'command': 'new_message',
+                    'message': message,
                     'chat_room': roomName,
                     'from':username,
                     'current_time':current_time
-                }));
+                });
+                chatSocket.send(toSend);
+                notifySocket.send(toSend);
                 messageInputDom.value = '';
             };
         </script>

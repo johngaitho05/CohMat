@@ -10,7 +10,12 @@ and open the template in the editor.
 * {margin: 0; padding: 0;}
 
 body{
-    font-family: sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #9e9e9e24;
+}
+.row{
+    margin-right: 0;
+    margin-left:0;
 }
 
 /*SIDENAV */
@@ -117,6 +122,9 @@ body{
 }
 #page-heading{
     margin-top: 0;
+    font-weight: 600;
+    color:#00f3da;
+    font-family: 'Bentham', serif;
 }
 
 #recommended-groups,#quick-chat-panel{
@@ -162,6 +170,9 @@ body{
     background-color: #0bdaff;
     display: block;
     padding: 10px;
+}
+.info-panel{
+  background-color: white;
 }
 #quick-chat-panel, #recommended-groups-container{
     border: 1px solid rgba(0,0,0,.125);

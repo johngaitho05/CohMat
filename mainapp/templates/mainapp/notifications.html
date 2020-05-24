@@ -5,25 +5,27 @@
 {% endblock %}
 {% block body %}
     <div class="col-md-6 offset-md-1 section-container">
-        <h2 id='page-heading'>Notifications</h2>
-        {% for notification in notifications %}
-            <div class="row notification-item">
-                <div class="col-md-8">
-                    <p>
-                        {% if notification.author.userprofile.profile_photo %}
-                            <img src="{{ notification.author.userprofile.profile_photo.url }}" class="img-fluid profile-image" alt="author_photo"/>
-                        {% else %}
-                            <img src="{% static 'accounts/images/default_profile_pic.png' %}" class="img-fluid profile-image" alt="author_photo"/>
-                        {% endif %}
-                        {{ notification.content }}
-                    </p>
+        <div class="info-panel">
+            <h2 id='page-heading'>Notifications</h2>
+            {% for notification in notifications %}
+                <div class="row notification-item">
+                    <div class="col-md-8">
+                        <p>
+                            {% if notification.author.userprofile.profile_photo %}
+                                <img src="{{ notification.author.userprofile.profile_photo.url }}" class="img-fluid profile-image" alt="author_photo"/>
+                            {% else %}
+                                <img src="{% static 'accounts/images/default_profile_pic.png' %}" class="img-fluid profile-image" alt="author_photo"/>
+                            {% endif %}
+                            {{ notification.author.first_name }} {{ notification.author.last_name }}
+                            {{ notification.content }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 notification-time text-center">
+                        <p>{{ notification.ago_time }}</p>
+                    </div>
                 </div>
-                <div class="col-md-4 notification-time text-center">
-                    <p>{{ notification.time }}</p>
-                </div>
-            </div>
-        {% endfor %}
-
+            {% endfor %}
+        </div>
     </div>
     <script>
 
