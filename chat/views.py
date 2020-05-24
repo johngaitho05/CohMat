@@ -27,6 +27,7 @@ def contacts_view(request):
 
 @login_required
 def chat(request, room_name):
+    room = get_object_or_404(ChatRoom, name=room_name)
     party = other_user_party(request.user.id, room_name)
     update_unread(party, room_name)
     today = date.today()

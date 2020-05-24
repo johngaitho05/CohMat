@@ -19,6 +19,8 @@ from data_structures.Searching.Searching import binary_search
 from data_structures.LinkedLists.SingleLinkedList import SingleLinkedList
 from accounts.views import increment_group_members
 
+local_tz = 'Africa/Nairobi'
+timezone.activate(local_tz)
 
 @method_decorator(login_required,
                   name='dispatch')
@@ -86,7 +88,7 @@ class NotificationsView(ListView):
     def get_context_data(self, **kwargs):
         data = get_user_data(self.request.user)
         profile = self.request.user.userprofile
-        profile.notifications_count=0
+        profile.notifications_count = 0
         profile.save()
         context = super(NotificationsView, self).get_context_data(**kwargs)
         context.update({

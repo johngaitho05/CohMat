@@ -286,16 +286,17 @@ function style_previously_selected_cards(data){
 
 
 function submitRegForm() {
-    let email = document.getElementById('email').value;
-    let username =  document.getElementById('username').value;
-    let password1  = document.getElementById('password1').value;
-    let password2 = document.getElementById('password2').value;
-    let profile_photo = document.getElementById('profile_photo').value;
-    let first_name = document.getElementById('first_name').value;
-    let last_name = document.getElementById('last_name').value;
-    let study_field = document.getElementById('study_field').value;
-    let school = document.getElementById('school').value;
-    let cohorts = document.getElementById('selected_cohorts').value;
+    let form  = document.getElementById('msform');
+    let email = form.email.value;
+    let username =  form.username.value;
+    let password1  = form.password1.value;
+    let password2 = form.password2.value;
+    let profile_photo = form.profile_photo.value;
+    let first_name = form.first_name.value;
+    let last_name = form.last_name.value;
+    let study_field = form.study_field.value;
+    let school = form.school.value;
+    let cohorts = form.selected_cohorts.value;
     let selected = get_selected().length;
     if (first_name !== '' && last_name !== '' && username !== ''
         && email !== '' && password1 !== '' && password2 !== ''

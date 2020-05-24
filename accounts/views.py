@@ -59,51 +59,50 @@ def register_view(request):
                                            "Please login or use a different email address", 'code': 1}
                     return JsonResponse(response)
 
-                try:
-                    User.objects.get(username=username)
+                if not username_is_unique(username):
                     response = {'message': "That username is already taken.", 'code': 1}
                     return JsonResponse(response)
-                except User.DoesNotExist:
-                    new_user = User(first_name=first_name, last_name=last_name,
-                                    email=email, username=username)
-                    new_user.set_password(pass1)
-                    new_user.is_active = False
-                    new_user.save()
-                    # create user profile
-                    try:
-                        profile_photo = request.FILES['profile_photo']
-                        new_profile = create_profile(new_user, study_field, groups, school, profile_photo)
-                    except MultiValueDictKeyError:
-                        new_profile = create_profile(new_user, study_field, groups, school)
+                new_user = User(first_name=first_name, last_name=last_name,
+                                email=email, username=username)
+                new_user.set_password(pass1)
+                new_user.is_active = False
+                new_user.save()
+                # create user profile
+                try:
+                    profile_photo = request.FILES['profile_photo']
+                    new_profile = create_profile(new_user, study_field, groups, school, profile_photo)
+                except MultiValueDictKeyError:
+                    # user did not upload profile picture. Use default profile pic
+                    new_profile = create_profile(new_user, study_field, groups, school)
 
-                    # add channels through which user can chat one-on-one with each member
-                    add_chat_rooms(new_user)
-                    increment_group_members(groups)
+                # add channels through which user can chat one-on-one with each member
+                add_chat_rooms(new_user)
+                increment_group_members(groups)
 
-                    # send a confirmation link to the user email
-                    try:
-                        current_site = get_current_site(request)
-                        email_subject = 'Activate Your Account'
-                        message = render_to_string('accounts/reg-email-body.html', {
-                            'user': new_user,
-                            'domain': current_site.domain,
-                            'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
-                            'token': account_activation_token.make_token(new_user),
-                        })
-                        to_email = email
-                        email = EmailMessage(email_subject, message, to=[to_email])
-                        email.send()
-                        response = {'message': 'Success', 'code': 0, 'email': to_email}
-                        return JsonResponse(response)
-                    except:
-                        new_user.delete()
-                        if new_profile:
-                            new_profile.delete()
-                        response = {'message': 'Something went wrong when validating your email. '
-                                               'Please provide valid school email then try'
-                                               ' again. If the problem persists, contact our support team ',
-                                    'code': 1}
-                        return JsonResponse(response)
+                # send a confirmation link to the user email
+                try:
+                    current_site = get_current_site(request)
+                    email_subject = 'Activate Your Account'
+                    message = render_to_string('accounts/reg-email-body.html', {
+                        'user': new_user,
+                        'domain': current_site.domain,
+                        'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
+                        'token': account_activation_token.make_token(new_user),
+                    })
+                    to_email = email
+                    email = EmailMessage(email_subject, message, to=[to_email])
+                    email.send()
+                    response = {'message': 'Success', 'code': 0, 'email': to_email}
+                    return JsonResponse(response)
+                except:
+                    new_user.delete()
+                    if new_profile:
+                        new_profile.delete()
+                    response = {'message': 'Something went wrong when validating your email. '
+                                           'Please provide valid school email then try'
+                                           ' again. If the problem persists, contact our support team ',
+                                'code': 1}
+                    return JsonResponse(response)
             else:
                 response = {'message': 'Password do not match', 'code': 1}
                 return JsonResponse(response)
@@ -117,11 +116,20 @@ def register_view(request):
 @anonymous_required
 def login_view(request):
     if request.method == 'POST':
-        user = authenticate(username=request.POST['username'], password=request.POST['password'])
+        username_or_email = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(username=username_or_email, password=password)
         if user is not None and user.is_active:
             login(request, user)
             return redirect('mainapp:homeView')
+
         else:
+            user = User.objects.filter(email=username_or_email).first()
+            if user:
+                auth_user = authenticate(username=user.username, password=password)
+                if auth_user is not None and auth_user.is_active:
+                    login(request, auth_user)
+                    return redirect('mainapp:homeView')
             return render(request, 'accounts/login.html', {'error_message': 'Invalid credentials'})
 
     return render(request, 'accounts/login.html')
@@ -239,7 +247,7 @@ def edit_email(request):
                     user.email = new_email
                     user.save()
                     response = {'message': "Your email address was updated successfully"
-                                           " and an activation link sent to the new email", 'code':0}
+                                           " and an activation link sent to the new email", 'code': 0}
                     return JsonResponse(response)
                 else:
                     response = {'message': "There exists an account associated with that email address."
@@ -257,13 +265,21 @@ def edit_email(request):
 def is_valid_email(email):
     regex = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
     if re.search(regex, email):
-        return True if '.ac.ke' in email or '.edu' in email else False
+        return True if '.ac' in email or '.edu' in email else False
     return False
 
 
 def email_is_unique(email):
     try:
         user = User.objects.get(email=email)
+        return False
+    except User.DoesNotExist:
+        return True
+
+
+def username_is_unique(username):
+    try:
+        user = User.objects.get(username=username)
         return False
     except User.DoesNotExist:
         return True
@@ -294,28 +310,29 @@ def update_profile(request):
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         username = request.POST['username']
-        email = request.POST['email']
         current_interest_id = request.POST['current_interest']
-        print(current_interest_id)
         current_interest = Cohort.objects.get(id=current_interest_id) if current_interest_id else None
-        basic_info = {'first_name': first_name, 'last_name': last_name, 'username': username,
-                      'email': email}
-        profile_info = {'current_interest': current_interest}
-        user = request.user
-        try:
-            profile = UserProfile.objects.get(user=user)
-            for (key, value) in basic_info.items():
-                setattr(user, key, value)
-            user.save()
-            for (key, value) in profile_info.items():
-                setattr(profile, key, value)
-            profile.save()
-            response = {'code': 0, 'message': 'Successfully Updated'}
+        if first_name and last_name and username:
+            if username_is_unique(username):
+                basic_info = {'first_name': first_name, 'last_name': last_name, 'username': username}
+                profile_info = {'current_interest': current_interest}
+                user = request.user
+                try:
+                    profile = UserProfile.objects.get(user=user)
+                    for (key, value) in basic_info.items():
+                        setattr(user, key, value)
+                    user.save()
+                    for (key, value) in profile_info.items():
+                        setattr(profile, key, value)
+                    profile.save()
+                    response = {'code': 0, 'message': 'Successfully Updated'}
+                    return JsonResponse(response)
+                except:
+                    response = {'code': 1, 'message': 'Something went wrong!'}
+                    return JsonResponse(response)
+            response = {'code': 1, 'message': 'That username is already taken'}
             return JsonResponse(response)
-        except:
-            response = {'code': 1, 'message': 'Something went wrong!'}
-            return JsonResponse(response)
-
-    else:
-        response = {'code': 1, 'message': 'Unexpected request type'}
+        response = {'code': 1, 'message': 'Failed! Please ensure that all fields contain valid values'}
         return JsonResponse(response)
+    print('Bad request')
+    return redirect('mainapp:homeView')

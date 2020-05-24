@@ -45,15 +45,17 @@ class NotificationConsumer(AsyncConsumer):
                     # save the answer to database
                     await self.save_answer(author, question, ans)
                     # save the notification to database
-                    notification_message = author.first_name + ' ' + author.last_name + ' commented on your post'
-                    await self.save_notification(recipient, notification_message)
+                    notification_message = ''
+                    if recipient != author:
+                        notification_message = 'commented on your post'
+                        await self.save_notification(recipient, notification_message)
 
-                    ''' the content to be sent to included in the notification'''
+                    ''' the content to be sent as notification'''
                     response = {
                         'notifierUsername': author.username,
                         'recipientUsername': recipient.username,
                         'notifierPhoto': author.userprofile.profile_photo.url,
-                        'message': notification_message
+                        'message': notification_message or None
                     }
                     # broadcasts the notification to be sent
                     await self.channel_layer.group_send(

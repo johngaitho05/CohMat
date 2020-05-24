@@ -81,10 +81,12 @@ function openAnswerInput(id){
 
 function allow_profile_editing(){
     // find all inputs in the page
-    let to_edit = document.getElementsByTagName("input");
+    let to_edit = document.querySelectorAll("input")
     // make all the inputs editable by removing the readonly attribute
     for (let i = 0; i< to_edit.length; i++){
-        to_edit[i].removeAttribute('readonly');
+        if(to_edit[i].name !== 'email'){
+            to_edit[i].removeAttribute('readonly');
+        }
     }
 }
 
@@ -114,7 +116,7 @@ function update_profile(){
             }
         });
     }else{
-        show_alert("Blank fields detected!")
+        show_alert("Failed! Please ensure that all fields contain valid values")
     }
 
 }
