@@ -40,15 +40,16 @@ def register_view(request):
     cohorts = Cohort.objects.all()
     study_fields = Cohort.objects.filter(level=0)
     if request.is_ajax():
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        username = request.POST['username']
-        email = request.POST['email']
-        study_field = request.POST['study_field']
-        pass1 = request.POST['password1']
-        pass2 = request.POST['password2']
-        school = request.POST['school']
-        groups = create_groups_list(request.POST['cohorts'])
+        data = request.POST
+        first_name = data['first_name']
+        last_name = data['last_name']
+        username = data['username']
+        email = data['email']
+        study_field = data['study_field']
+        pass1 = data['password1']
+        pass2 = data['password2']
+        school = data['school']
+        groups = create_groups_list(data['cohorts'])
         if first_name and last_name and username and email and study_field and pass1 and pass2 and groups and school:
             if not is_valid_email(email):
                 response = {"message": "Invalid email address", "code": 1}
@@ -73,6 +74,7 @@ def register_view(request):
                     new_profile = create_profile(new_user, study_field, groups, school, profile_photo)
                 except MultiValueDictKeyError:
                     # user did not upload profile picture. Use default profile pic
+                    print('no file found')
                     new_profile = create_profile(new_user, study_field, groups, school)
 
                 # add channels through which user can chat one-on-one with each member
@@ -80,24 +82,12 @@ def register_view(request):
                 increment_group_members(groups)
 
                 # send a confirmation link to the user email
-                try:
-                    current_site = get_current_site(request)
-                    email_subject = 'Activate Your Account'
-                    message = render_to_string('accounts/reg-email-body.html', {
-                        'user': new_user,
-                        'domain': current_site.domain,
-                        'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
-                        'token': account_activation_token.make_token(new_user),
-                    })
-                    to_email = email
-                    email = EmailMessage(email_subject, message, to=[to_email])
-                    email.send()
-                    response = {'message': 'Success', 'code': 0, 'email': to_email}
+                current_site = get_current_site(request)
+                if send_link_via_mail(current_site, email, request.user):
+                    response = {'message': 'Success', 'code': 0, 'email': email}
                     return JsonResponse(response)
-                except:
+                else:
                     new_user.delete()
-                    if new_profile:
-                        new_profile.delete()
                     response = {'message': 'Something went wrong when validating your email. '
                                            'Please provide valid school email then try'
                                            ' again. If the problem persists, contact our support team ',
@@ -170,7 +160,7 @@ def activate_account(request, uidb64, token):
         login(request, user)
         return redirect('mainapp:homeView')
     else:
-        return HttpResponse('Activation link is invalid!')
+        return HttpResponse('Activation link is invalid or expired')
 
 
 def logout_view(request):
@@ -227,39 +217,45 @@ def increment_group_members(groups):
 @anonymous_required
 def email_confirmation_view(request):
     if request.method == 'POST':
-        return render(request, 'accounts/confirm-email.html', {'user': request.POST['email']})
-    # return redirect('accounts:register')
-    return render(request, 'accounts/confirm-email.html', {'email': 'johnyk@gmail.com'})
+        return render(request, 'accounts/confirm-email.html', {'email': request.POST['email']})
+    return redirect('accounts:register')
 
 
-def edit_email(request):
+@csrf_exempt
+def resend_activation_link(request):
     if request.is_ajax():
-        old_email = request.POST['email1']
-        new_email = request.POST['email2']
+        old_email = request.POST['old-email']
+        new_email = request.POST['new-email']
         if old_email and new_email:
             if not is_valid_email(new_email):
                 response = {"message": "Invalid email address. Please provide a valid school email", 'code': 1}
                 return JsonResponse(response)
 
-            user = User.objects.get(email=old_email)
-            if send_link_via_mail(request, user, new_email):
-                if email_is_unique(new_email):
-                    user.email = new_email
-                    user.save()
-                    response = {'message': "Your email address was updated successfully"
-                                           " and an activation link sent to the new email", 'code': 0}
-                    return JsonResponse(response)
+            users = User.objects.filter(email=old_email)
+            print(users)
+            if users.count() == 1:
+                user = users.first()
+                current_site = get_current_site(request)
+                if send_link_via_mail(current_site, new_email, user):
+                    if email_is_unique(new_email) or old_email == new_email:
+                        user.email = new_email
+                        user.save()
+                        response = {'message': "Your email address was updated successfully"
+                                               " and an activation link was sent sent to " + new_email, 'code': 0}
+                        if old_email == new_email:
+                            response = {'message': 'New activation link has been sent to: ' + new_email, 'code': 0}
+                    else:
+                        response = {'message': "There exists another account associated with that email address."
+                                               "Please login or use a different email address", 'code': 1}
                 else:
-                    response = {'message': "There exists an account associated with that email address."
-                                           "Please login or use a different email address", 'code': 1}
-                    return JsonResponse(response)
+                    response = {'message': 'Something went wrong when validating your email. '
+                                           'Please provide a valid school email and then try'
+                                           ' again. If the problem persists, contact our support team ',
+                                'code': 1}
             else:
-                response = {'message': 'Something went wrong when validating your email. '
-                                       'Please provide a valid school email and then try'
-                                       ' again. If the problem persists, contact our support team ',
-                            'code': 1}
-                return JsonResponse(response)
-    return Http404("Bad Request")
+                response = {'message': 'Something went wrong!', 'code': 1}
+            return JsonResponse(response)
+    return Http404("Invalid request")
 
 
 def is_valid_email(email):
@@ -285,9 +281,8 @@ def username_is_unique(username):
         return True
 
 
-def send_link_via_mail(request, user, email):
+def send_link_via_mail(current_site, email, user):
     try:
-        current_site = get_current_site(request)
         email_subject = 'Activate Your Account'
         message = render_to_string('accounts/reg-email-body.html', {
             'user': user,
@@ -295,11 +290,10 @@ def send_link_via_mail(request, user, email):
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': account_activation_token.make_token(user),
         })
-        email = EmailMessage(email_subject, message, to=[email])
-        email.send()
+        msg = EmailMessage(email_subject, message, to=[email])
+        msg.send()
         return True
     except:
-
         return False
 
 

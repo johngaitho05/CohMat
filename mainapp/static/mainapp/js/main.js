@@ -4,9 +4,11 @@
  * and open the template in the editor.
  */
 
-// $(document).on('click', '.fas-icon', function() {
-//     $(this).toggleClass('fa-plus fa-minus');
-// });
+// Update posts and notifications time after every minute
+setInterval('updateMinutesTime()',60000);
+
+// Update posts and notifications time after every hour
+setInterval('updateHourlyTime()',3600000);
 
 /* Set the width of the side navigation to 30% */
 function openNav() {
@@ -121,7 +123,6 @@ function update_profile(){
 
 }
 
-
 // Show alert based on the message received from the server after ajax form submission
 function show_alert(message, alert_code=1){
     let alert_class = get_alert_class(alert_code);
@@ -138,7 +139,7 @@ function show_alert(message, alert_code=1){
     container.innerHTML += content;
     setTimeout(function(){
         $(".alert").alert('close');
-    },5000);
+    },10000);
 }
 
 
@@ -151,3 +152,32 @@ function get_alert_class(alert_code) {
 
 }
 
+function updateMinutesTime(){
+    let spans = $(".timer:contains('minute')");
+    spans.each(function( index ) {
+        let minSpan = $(this).find('span');
+        let minutes = parseInt(minSpan.text());
+        if(minutes<59){
+            let updatedTime = minutes+1;
+            $(this).html('<span>'+ updatedTime + '&nbsp;</span>minutes ago')
+        }else{
+            minSpan.text(1);
+            $(this).html('<span>1 &nbsp;</span>hour ago')
+        }
+    });
+}
+
+function updateHourlyTime(){
+    let timeHolders = $(".timer:contains('hour')");
+    timeHolders.each(function( index ) {
+        let minSpan = $(this).find('span');
+        let hours = parseInt(minSpan.text());
+        if(hours<23){
+            let updatedTime = hours+1;
+            $(this).html('<span>'+ updatedTime + '&nbsp;</span>hours ago')
+        }else{
+            minSpan.text(1);
+            $(this).html('<span>1 &nbsp;</span>day ago')
+        }
+    });
+}

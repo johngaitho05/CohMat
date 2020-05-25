@@ -1,6 +1,3 @@
-// import {show_alert} from 'mainapp/static/mainapp/js/main.js'
-
-
 let current_fs, next_fs, previous_fs; //fieldsets
 let left, opacity, scale; //fieldset properties which we will animate
 let animating; //flag to prevent quick multi-click glitches
@@ -283,55 +280,30 @@ function style_previously_selected_cards(data){
     }
 }
 
-
-
-function submitRegForm() {
-    let form  = document.getElementById('msform');
-    let email = form.email.value;
-    let username =  form.username.value;
-    let password1  = form.password1.value;
-    let password2 = form.password2.value;
-    let profile_photo = form.profile_photo.value;
-    let first_name = form.first_name.value;
-    let last_name = form.last_name.value;
-    let study_field = form.study_field.value;
-    let school = form.school.value;
-    let cohorts = form.selected_cohorts.value;
-    let selected = get_selected().length;
-    if (first_name !== '' && last_name !== '' && username !== ''
-        && email !== '' && password1 !== '' && password2 !== ''
-        && study_field !== '' && school !== '') {
-        if (password1 === password2) {
-            if (selected === 0){
-                show_alert("You must select at least 1 cohort")
+function submitRegForm(){
+    let form = document.querySelector('#msform');
+    console.log(form);
+    let formData = new FormData(form);
+    $.ajax({
+        url: "",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+            let message = data['message'];
+            let code = data['code'];
+            if (code === 0){
+                $('body').addClass("loading");
+                let form = $('#email-confirmation-form');
+                form.find('input[name=email]').val(data['email']);
+                form.submit();
             }else{
-                $.ajax({
-                    method: "POST",
-                    url: "",
-                    data: {'email':email,'username':username,'password1':password1, 'password2':password2,
-                        'profile_photo':profile_photo,'first_name':first_name,'last_name':last_name,
-                        'study_field':study_field,'school':school,'cohorts':cohorts},
-                    success: function (data) {
-                        let message = data['message'];
-                        let code = data['code'];
-                        if (code === 0){
-                            console.log("Submitting form");
-                            document.getElementById('user-email').value = data['email'];
-                            let form = document.getElementById('email-confirmation-form');
-                            form.submit();
-                        }else{
-                            show_alert(message)
-                        }
-                    }
-                });
+                show_alert(message)
             }
-        }else{
-            show_alert('Passwords do not match')
-        }
-    } else {
-        show_alert('Blank fields detected. Please fill in all required fields')
-    }
-
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
 }
 
 const show_alert = (message, alert_code=1) => {
@@ -362,27 +334,30 @@ function get_alert_class(alert_code) {
 
 }
 
-function show_edit_email_form(){
-    let form = document.getElementById('edit-email-form');
-    form.removeAttribute('hidden')
+function showResendForm(){
+    let form = $('#resend-link-form');
+    form.removeAttr('hidden')
 }
 
-function editEmail() {
-    let old_email = document.getElementById('email1');
-    let new_email = document.getElementById('email2');
+function resendLink() {
+    let old_email = $('#old-email').val();
+    let new_email = $('#new-email').val();
     if (old_email  && new_email) {
         $.ajax({
             method: "POST",
-            url: "edit",
-            data: {'email1': old_email, 'email2': new_email},
+            url: "resend-link",
+            data: {'old-email': old_email, 'new-email': new_email},
             success: function (data) {
                 let code = data['code'];
                 let message = data['message'];
-                show_alert(message, code)
+                show_alert(message, code);
+                if (code === 0)
+                    $('#old-email').val(new_email)
             }
         });
 
     }else{
-        show_alert("The email field should not be empty")
+        show_alert("The email field cannot not be empty")
     }
 }
+

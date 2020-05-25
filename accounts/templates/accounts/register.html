@@ -32,11 +32,11 @@
                 <label for="email">Email</label>
                 <input type="text" name="email" id="email" placeholder="Type in your School Email"/>
                 <label for="username">Username</label>
-                <input type="text" name="username" id="username" placeholder="Enter a username of your choice"/>
+                <input type="text" name="username" id="username" placeholder="Enter a username of your choice" autocomplete="username"/>
                 <label for="password1">Password</label>
-                <input type="password" name="password1" id="password1" placeholder="Choose a password"/>
+                <input type="password" name="password1" id="password1" placeholder="Choose a password" autocomplete="new-password"/>
                 <label for="password2">Confirm password</label>
-                <input type="password" name="password2" id="password2" placeholder="Retype password"/>
+                <input type="password" name="password2" id="password2" placeholder="Retype password" autocomplete="new-password"/>
                 <div class="fieldset-footer">
                     <input type="button" name="next" class="next action-button" value="Next" />
                 </div>
@@ -48,8 +48,8 @@
                 </div>
                 <div class="avatar-upload">
                     <div class="avatar-edit">
-                        <input type='file' name="profile_photo" id="profile_photo" accept=".png, .jpg, .jpeg" />
                         <label for="profile_photo"><i class="fas fa-edit"></i></label>
+                        <input type='file' name="profile_photo" id="profile_photo" accept=".png, .jpg, .jpeg" />
                     </div>
                     <div class="avatar-preview">
                         <div id="imagePreview" >
@@ -100,13 +100,13 @@
                 <div class="row" id="to_join_container">
                     {#                    cohorts goes here#}
                 </div>
+                <input type="hidden" id="selected_cohorts" value="" name="cohorts"/>
                 <br />
                 <div class="fieldset-footer">
                     <input type="button" name="back" class="previous action-button" value="Back" />
                     <input type="button" onclick="submitRegForm()"  name="submit_button"  class="submit action-button" value="Submit" />
                 </div>
             </fieldset>
-            <input type="hidden" id="selected_cohorts" value="" name="selected_cohorts"/>
         </form>
     </div>
     <form id="email-confirmation-form" method="post" action="{% url 'accounts:email-confirmation' %}">

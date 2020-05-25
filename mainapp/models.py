@@ -2,7 +2,7 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
-from projectdir.utils import ago
+from projectdir.utils import AgoTime
 
 User = get_user_model()
 
@@ -33,7 +33,7 @@ class Question(models.Model):
     image = models.FileField(upload_to='images', blank=True, default='')
 
     def ago_time(self):
-        return ago(self.time)
+        return AgoTime(self.time)
 
     def __str__(self):
         return self.author.username + ' >> ' + self.target_cohort.title
@@ -46,7 +46,7 @@ class Notification(models.Model):
     time = models.DateTimeField(auto_now_add=True)
 
     def ago_time(self):
-        return ago(self.time)
+        return AgoTime(self.time)
 
 
 class Answer(models.Model):
@@ -56,7 +56,7 @@ class Answer(models.Model):
     time = models.DateTimeField(auto_now_add=True)
 
     def ago_time(self):
-        return ago(self.time)
+        return AgoTime(self.time)
 
 
 class Reply(models.Model):
@@ -66,5 +66,5 @@ class Reply(models.Model):
     time = models.DateTimeField(auto_now_add=True)
 
     def ago_time(self):
-        return ago(self.time)
+        return AgoTime(self.time)
 

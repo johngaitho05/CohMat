@@ -33,7 +33,9 @@
         {% for quiz, answers in quiz_and_ans %}
             <div class="card" id="quiz_{{ quiz.id }}">
                 <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}
-                    <span>></span> {{ quiz.target_cohort }}<small class="post-time float-right">{{ quiz.ago_time }}</small></p>
+                    <span>></span> {{ quiz.target_cohort }}<small class="post-time float-right timer">
+                        <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}</small>
+                </p>
                 <p>{{quiz.content}}</p>
                 {%  if quiz.image %}
                     <a href="{{ quiz.image.url }}"><img class="img-fluid" src="{{ quiz.image.url }}" alt="Missing Image"/></a>
@@ -71,7 +73,9 @@
                                     <div class="answer-item">
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
-                                        <p class="float-right answer-time">{{ answer.ago_time }}</p>
+                                        <p class="float-right answer-time timer">
+                                            <span id="test-timer">{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
+                                        </p>
                                         <p class="answer-content ">{{ answer.content }}</p>
                                         <p class="reply-trigger">Reply</p>
                                     </div>

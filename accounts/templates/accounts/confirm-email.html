@@ -17,14 +17,15 @@
         <h4 class="success-header">Account Created</h4>
         <p>We have sent an activation link to <b>{{ email }}</b>. Click on the link to activate your account</p>
         <p><b>OR</b></p>
-        <p>Click <a href="#" onclick="show_edit_email_form()">here</a> to edit your email</p>
-
-        <form id="edit-email-form" method="post" action="" hidden>
-            <input type="hidden" id="email1" name="email1" value="{{ email }}"/>
-            <input type="email" placeholder="Type a new email address" id="email2" name="email2" class="form-control"/>
+        <a href="#" onclick="resendLink()">Resend link</a><br/>
+        <a onclick="showResendForm()" href="#">Edit Email</a>
+        <form id="resend-link-form" method="post" action="" hidden>
+            <input type="hidden" id="old-email" name="old-email" value="{{ email }}"/>
+            <input type="email" placeholder="Type a new email address" id="new-email"
+                   name="new-email" value="{{ email }}" class="form-control"/>
             <br/>
+            <input type="button" onclick="resendLink()" class="btn btn-info" value="Submit"/>
         </form>
-        <input type="button" onclick="editEmail()" class="btn btn-info" value="Submit"/>
     </div>
 </div>
 <div class="modal loader"></div>
