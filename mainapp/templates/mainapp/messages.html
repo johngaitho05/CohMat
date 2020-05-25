@@ -13,7 +13,8 @@
                 <div class="message-item" >
                     <img src="{% static 'images/avatar.jpeg' %}" class="profile-image" alt=""/>
                     <h6 class="contact-name">{{contact.first_name}} {{ contact.last_name }}</h6>
-                    <p class="message-time float-right">{{ last_text.timestamp }}</p>
+                    <p class="message-time float-right timer"><span>{{ last_text.ago_time.count }}&nbsp;</span>{{ last_text.ago_time.desc }}</p>
+                   {{ last_text.timestamp }}
                     <p href="#" class="last-text">{{ last_text.sliced_text }}
                         {% if party == 'A'  and room.unread_B != 0 %}
                             <span class="badge">{{ room.unread_B }}</span>

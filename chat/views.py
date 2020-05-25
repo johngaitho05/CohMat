@@ -27,6 +27,7 @@ def contacts_view(request):
 
 @login_required
 def chat(request, room_name):
+    request.session['django_timezone'] = 'Africa/Nairobi'
     room = get_object_or_404(ChatRoom, name=room_name)
     party = other_user_party(request.user.id, room_name)
     update_unread(party, room_name)
@@ -99,15 +100,18 @@ def get_recent_chats(user):
     for i in range(len(chat_list)):
         chat_room = chat_list[i]
         contact = get_active_contact(user.id, chat_room.name)
-        party = other_user_party(user.id, chat_room.name)
-        last_text = chat_room.last_message
-        chat_list[i] = (contact, chat_room, party, last_text)
-    return chat_list
+        if contact:
+            party = other_user_party(user.id, chat_room.name)
+            last_text = chat_room.last_message
+            chat_list[i] = (contact, chat_room, party, last_text)
+        else:
+            chat_list[i] = None
+    return [recent for recent in chat_list if recent]
 
 
 # called when a new user registers to create chatrooms through which the user can chat with other members
 def add_chat_rooms(current_user):
-    users = User.objects.all()
+    users = User.objects.all().exclude(current_user)
     for user in users:
         new_room = str(user.id) + 'A' + str(current_user.id)
         ChatRoom.objects.create(name=new_room)
@@ -139,8 +143,12 @@ def get_chat_room(contact_id, user_id):
 
 def get_active_contact(user_id, room_name):
     active_contact_id = get_active_contact_id(user_id, room_name)
-    active_contact = get_object_or_404(User, id=active_contact_id)
-    return active_contact
+    try:
+        active_contact = User.objects.get(id=active_contact_id)
+        return active_contact
+    except User.DoesNotExist:
+        ChatRoom.objects.filter(name=room_name).delete()
+        return
 
 
 def get_active_contact_id(user_id, room_name):
@@ -168,7 +176,9 @@ def get_texts(room_name):
     texts_list = [None] * len(date_set)
     for i in range(len(date_set)):
         message_date = date_set[i]
-        texts = [(message, message.timestamp.time()) for message in messages if
+        '''Bad code. Must edit!!'''
+        texts = [(message, str(int(str(message.timestamp)[10:13])+3)+
+                  str(message.timestamp)[13:16]) for message in messages if
                  message.timestamp.date() == message_date]
         texts_list[i] = (message_date, texts)
     return texts_list

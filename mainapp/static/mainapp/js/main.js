@@ -153,8 +153,12 @@ function get_alert_class(alert_code) {
 }
 
 function updateMinutesTime(){
-    let spans = $(".timer:contains('minute')");
-    spans.each(function( index ) {
+    let new_posts = $(".timer:contains('now')");
+    let other_posts = $(".timer:contains('minute')");
+    new_posts.each(function() {
+        $(this).html('<span>'+ 1 + '&nbsp;</span>minute ago')
+    });
+    other_posts.each(function() {
         let minSpan = $(this).find('span');
         let minutes = parseInt(minSpan.text());
         if(minutes<59){

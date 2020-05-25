@@ -1,10 +1,15 @@
 # chat/consumers.py
+from time import timezone
+
 from django.shortcuts import get_object_or_404
 from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from channels.generic.websocket import WebsocketConsumer
 from datetime import datetime
 import json
+
+from django.utils.timezone import make_aware
+
 from .models import Message, ChatRoom
 from .views import update_last_message, other_user_party, get_active_contact
 
@@ -29,6 +34,9 @@ class ChatConsumer(WebsocketConsumer):
         author = data['from']
         content = data['message']
         room_name = data['chat_room']
+        time_string = data['current_time']
+        current_time = datetime.strptime(time_string, '%d-%m-%Y %H:%M:%S')
+        print(current_time)
         author_user = User.objects.filter(username=author)
         if author_user.count() == 1:
             author_user = author_user.first()

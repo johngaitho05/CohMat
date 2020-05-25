@@ -217,14 +217,15 @@ body{
     display: inline;
 }
 .messaging_link{
-    margin-left: 30%;
-    font-size:17px;
-    color:#007bff;
+    font-size:20px;
+    color: #10ff7c;
+    font-weight: 700;
 }
 
 
-#quick-chat-panel th, #quick-chat-panel td{
-    width: 20%;
+#quick-chat-panel th, #quick-chat-panel td:not(:last-of-type){
+    min-width: 210px;
+    font-size: 15px;
 
 }
 

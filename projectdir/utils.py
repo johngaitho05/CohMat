@@ -1,6 +1,9 @@
 from datetime import datetime, date, timedelta
 from django.template.defaultfilters import timesince, register
 from django.utils import timezone
+import pytz
+
+from django.utils import timezone
 
 
 class AgoTime:
@@ -8,10 +11,10 @@ class AgoTime:
         self.time = get_ago_time(date_time).replace(u'\xa0', ' ')
 
     def count(self):
-        return self.time.split(' ')[0]
+        return int(self.time.split(' ')[0])
 
     def desc(self):
-        return self.time[len(self.count())+1:]
+        return self.time[len(str(self.count())) + 1:]
 
     def __str__(self):
         return self.time
@@ -27,3 +30,16 @@ def get_ago_time(passed_time):
             return "seconds ago"
         return "%s ago" % span
     return date(passed_time)
+
+
+class CustomTimezoneMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        tzname = request.session.get('custom_timezone')
+        if tzname:
+            timezone.activate(pytz.timezone(tzname))
+        else:
+            timezone.deactivate()
+        return self.get_response(request)

@@ -19,10 +19,6 @@ from data_structures.Searching.Searching import binary_search
 from data_structures.LinkedLists.SingleLinkedList import SingleLinkedList
 from accounts.views import increment_group_members
 
-local_tz = 'Africa/Nairobi'
-timezone.activate(local_tz)
-
-
 @method_decorator(login_required,
                   name='dispatch')
 class HomeView(ListView):
@@ -47,8 +43,7 @@ class HomeView(ListView):
 
     def get_queryset(self):
         questions = get_user_data(self.request.user)['questions']
-        qs = Question.objects.annotate(number_of_answers=Count('answer'))
-        t = timezone.now()
+        qs = Question.objects.annotate(number_of_answers=Count('answer')).order_by('-time')
         return [(q, Answer.objects.filter(question=q).order_by('-time')) for q in qs if q in questions]
 
 
@@ -122,16 +117,14 @@ def get_user_data(user):
     user_cohorts = user.userprofile.user_groups  # IDs for cohorts that the user has joined
     user_cohorts = [Cohort.objects.get(id=cohort) for cohort in user_cohorts]  # getting real cohorts from the ids
     '''using a linked_list to dynamically store questions/posts that can be displayed to the user(newsfeed)'''
-    questions_list = SingleLinkedList()
+    ids_list = SingleLinkedList()
     # Iterate through all user_groups and get the last 100 posts for each
     for cohort in user_cohorts:
         questions = Question.objects.filter(target_cohort=cohort).order_by('-time')[:100]
         if questions:
             for q in questions:
-                questions_list.insert_at_end(q.id)
-    questions_list = sorted([Question.objects.get(id=int(quiz_id)) for
-                             quiz_id in questions_list.display_list()], reverse=True)
-
+                ids_list.insert_at_end(q.id)
+    questions_list = [Question.objects.get(id=quiz_id) for quiz_id in ids_list.display_list()]
     leaf_cohort = user.userprofile.study_field
     all_cohorts = leaf_cohort.get_descendants(include_self=False)
     to_recommend = []

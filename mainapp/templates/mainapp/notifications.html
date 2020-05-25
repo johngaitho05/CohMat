@@ -21,7 +21,13 @@
                         </p>
                     </div>
                     <div class="col-md-4 notification-time text-center">
-                        <p>{{ notification.ago_time }}</p>
+                        <p class="timer">
+                            {% if notification.ago_time.count == 0 %}
+                                <span>Just now</span>
+                            {% else %}
+                                <span>{{ notification.ago_time.count }}&nbsp;</span>{{ notification.ago_time.desc }}
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             {% endfor %}
