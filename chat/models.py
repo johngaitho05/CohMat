@@ -16,8 +16,10 @@ class Contact(models.Model):
 class Message(models.Model):
     author = models.ForeignKey(User, related_name="user_messages", on_delete=models.CASCADE)
     content = models.TextField()
-    timestamp = models.DateTimeField(auto_now=True)
+    time = models.DateTimeField(auto_now=True)
     chat_room = models.CharField(max_length=50)
+    deleted_A = models.BooleanField(default=False)
+    deleted_B = models.BooleanField(default=False)
 
     def __str__(self):
         return self.author.username
@@ -29,7 +31,7 @@ class Message(models.Model):
             return self.content
 
     def ago_time(self):
-        return AgoTime(self.timestamp)
+        return AgoTime(self.time)
 
 
 class ChatRoom(models.Model):

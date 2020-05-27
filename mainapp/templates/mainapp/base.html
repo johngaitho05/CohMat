@@ -47,15 +47,21 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="notifications_link" href="{% url 'mainapp:notificationsView' %}">
-                    <div id="notifications-badge">
+                    <small class="notifier" id="notifications-badge">
                         {% if user.userprofile.notifications_count != 0 %}
                             <sup id="notification-count">{{ user.userprofile.notifications_count }}</sup>
                         {% endif %}
-                    </div>
+                    </small>
                     <i class="fas fa-bell"></i> Notifications</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="messages_link" href="{% url 'mainapp:messagesView' %}"><i class="fas fa-comment"></i> Messages</a>
+                <a class="nav-link" id="messages_link" href="{% url 'mainapp:messagesView' %}">
+                    <small class="notifier" id="messages-badge">
+                        {% if user.userprofile.messages_count != 0 %}
+                            <sup id="messages-count">{{ user.userprofile.messages_count }}</sup>
+                        {% endif %}
+                    </small>
+                    <i class="fas fa-comment"></i> Messages</a>
             </li>
         </ul>
     </div>
@@ -117,7 +123,7 @@
                                     </a>
                                 </td>
                                 <td>{{user.userprofile.current_interest}}</td>
-                                <td style="max-width: 50px"><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                                <td><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -137,8 +143,8 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form action="{% url 'mainapp:create_post' %}" id="question-form" method="post" enctype="multipart/form-data">
+            <form action="{% url 'mainapp:create_post' %}" id="question-form" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
                     {% csrf_token %}
                     <textarea placeholder="Type or paste your question here" name="question-text" id="question-text" cols="20" rows="5"  ></textarea>
                     <div class="row">
@@ -146,20 +152,20 @@
                             <input type="file" accept="image/*" id="question-image" name="question-image"/>
                         </div>
                         <div class="question-details col-md-6">
-                            <select name="question-group" id="question-group">
-                                <option value="0">Select group</option>
+                            <select name="question-group" id="question-group" required>
+                                {#                                <option value="">Select group</option>#}
                                 {% for cohort in user_cohorts %}
                                     <option value="{{ cohort.id }}">{{ cohort.title }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button id="questionSubmit" onclick="submit_question()" class="btn btn-info">Submit</button>
-                <p class="text-center" id="quiz-error"></p>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="questionSubmit" type="submit" class="btn btn-info">Submit</button>
+                    <p class="text-center" id="quiz-error"></p>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -201,25 +207,10 @@
         let data = JSON.parse(e.data);
         let type = data['command'];
         if(type === 'new_answer'){
-            let quiz_id = 'quiz_' + data['quiz_id'];
-            let username =  data['notifierUsername'];
-            let counter = $('#notification-count');
-            if(username !== '{{ user.username }}') {
-                if (counter.length) {
-                    counter.text(parseInt(counter.text()) + 1)
-                } else {
-                    console.log(data);
-                    $('#notifications-badge').html("<sup id='notification-count'>1</sup>");
-                }
-            }
-            console.log(quiz_id);
-            let quiz = $('#'+quiz_id);
-            let counter2 = quiz.find($('.ans-counter'));
-            counter2.text(parseInt(counter2.text())+1);
+            HandleAnswerNotification(data, '{{ user.username }}')
         }else if(type === 'new_message'){
-            console.log(data)
+            MessageNotificationHandler(data, '{{ user.username }}')
         }
-
     };
     socket.onopen= function(e){
         $('.answer-form').submit(function(event){

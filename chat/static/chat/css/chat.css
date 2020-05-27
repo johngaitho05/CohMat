@@ -1,6 +1,7 @@
 
 body{
     padding: 10px;
+    background-color: #ebebf1;
 }
 #home_btn{
     box-sizing: unset;
@@ -9,7 +10,7 @@ body{
 }
 #phone-panel{
     height:100%;
-    background-color:#00968800;
+    background-color:white;
     position: absolute;
 }
 .avatar{
@@ -34,7 +35,6 @@ body{
     right:0;
     width:75%;
     height:100%;
-    background-color:ghostwhite;
 }
 .header{
     position:fixed;
@@ -43,7 +43,8 @@ body{
     padding-top: 10px;
     padding-bottom: 10px;
     font-size: 25px;
-    background-color: #59db09;
+    background-color: #00BFFF;
+    color:white;
 }
 #delete-initiator{
     font-size: 14px;
@@ -51,6 +52,7 @@ body{
     position: fixed;
     right:30px;
     top: 10px;
+    color: #7214ff;
 }
 #delete-initiator:hover{
     color:blue;
@@ -66,7 +68,6 @@ body{
     bottom: 5px;
     width:50%;
     height:60px;
-    background: transparent;
 }
 #send{;
     padding: 0;
@@ -96,7 +97,7 @@ body{
     margin-top: 5px;
     padding: 5px 0 15px 10px;
     line-height: 0;
-    background-color:#05afaf;
+    background-color: #05d6d6;
 }
 #phone-panel .card h4{
     color:aliceblue;
@@ -105,20 +106,22 @@ body{
 }
 .replies{
     width:60%;
-    background-color: #0bf3e8;
+    background-color: white;
     border-radius: 7px;
     margin-top: 14px;
     margin-left: 2%;
     line-height: 1.2rem;
     font-size: 15px;
     padding:10px 10px 0 10px;
+    color: black;
 }
 .sent p, .replies p{
     text-align: justify;
 }
 .sent{
     width:60%;
-    background-color: #d2cd6e;
+    color: white;
+    background-color:rgb(105, 128, 200);
     border-radius:7px;
     margin-top: 14px;
     line-height: 1.2rem;
@@ -143,7 +146,7 @@ body{
 }
 
 .time{
-    color:chocolate;
+    color:#ccffcc;
     text-align: right !important;
     margin-bottom: 0;
 }
@@ -156,7 +159,6 @@ body{
 }
 
 #texts_section{
-    background-color: ghostwhite;
     padding-top: 80px;
     width: 100%;
     height: auto;

@@ -25,22 +25,21 @@ class ChatConsumer(WebsocketConsumer):
 
     def message_to_json(self, message):
         return {
+            'id': message.pk,
             'author': message.author.username,
             'content': message.content,
-            'time': str(datetime.strftime(message.timestamp, '%H:%M'))
+            'time': str(datetime.strftime(message.time, '%H:%M'))
         }
 
     def new_message(self, data):
-        author = data['from']
         content = data['message']
         room_name = data['chat_room']
         time_string = data['current_time']
         current_time = datetime.strptime(time_string, '%d-%m-%Y %H:%M:%S')
-        print(current_time)
-        author_user = User.objects.filter(username=author)
-        if author_user.count() == 1:
-            author_user = author_user.first()
-            message = Message.objects.create(author=author_user, content=content, chat_room=room_name)
+        author_user = self.scope['user']
+        if author_user.is_authenticated:
+            message = Message.objects.create(author=author_user, content=content, chat_room=room_name,
+                                             time=current_time)
             update_last_message(room_name)
             party = other_user_party(author_user.id, room_name)
             room = ChatRoom.objects.get(name=room_name)
@@ -54,6 +53,7 @@ class ChatConsumer(WebsocketConsumer):
             recipient.userprofile.save()
             content = {
                 'command': 'new_message',
+                'author': author_user.username,
                 'message': self.message_to_json(message),
                 'last_text': message.sliced_text()
             }
@@ -65,6 +65,7 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
+        print(self.scope['url_route']['kwargs'])
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
 

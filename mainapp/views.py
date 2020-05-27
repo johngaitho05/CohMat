@@ -3,7 +3,7 @@ import random
 
 from django.db.models import Count
 from django.utils import timezone
-
+from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -18,6 +18,7 @@ from accounts.models import UserProfile
 from data_structures.Searching.Searching import binary_search
 from data_structures.LinkedLists.SingleLinkedList import SingleLinkedList
 from accounts.views import increment_group_members
+
 
 @method_decorator(login_required,
                   name='dispatch')
@@ -171,20 +172,32 @@ def get_cohorts(user):
     return to_recommend[0:30]
 
 
+@csrf_exempt
 @login_required
 def create_post(request):
-    if request.method == 'POST':
+    if request.is_ajax():
         content = request.POST['question-text']
         target_group_id = request.POST['question-group']
-        target_group = Cohort.objects.get(id=int(target_group_id))
-        try:
-            image = request.FILES['question-image']
-            handle_uploaded_file(image, 'images')
-            Question.objects.create(author=request.user, content=content,
-                                    image='images' + '/' + image.name, target_cohort=target_group)
-        except MultiValueDictKeyError:
-            Question.objects.create(author=request.user, content=content, target_cohort=target_group)
-        return redirect('mainapp:homeView')
+        if target_group_id:
+            target_group = get_object_or_404(Cohort, id=int(target_group_id))
+            try:
+                image = request.FILES['question-image']
+                handle_uploaded_file(image, 'images')
+                Question.objects.create(author=request.user, content=content,
+                                        image='images' + '/' + image.name, target_cohort=target_group)
+                response = {'message': 'success', 'code': 0}
+            except MultiValueDictKeyError:
+                if content:
+                    Question.objects.create(author=request.user, content=content, target_cohort=target_group)
+                    response = {'message': 'success', 'code': 0}
+                else:
+                    response = {'message': 'Content or Image is required', 'code': 1}
+        else:
+            response = {'message': 'Please select the target group', 'code': 1}
+
+        return JsonResponse(response)
+
+    return redirect('mainapp:homeView')
 
 
 @login_required
@@ -206,6 +219,3 @@ def handle_uploaded_file(file, desired_location):
     with open(settings.MEDIA_ROOT + '/' + desired_location + '/' + file.name, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
-
-
-

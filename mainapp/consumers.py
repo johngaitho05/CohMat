@@ -46,20 +46,20 @@ class NotificationConsumer(AsyncConsumer):
                         # save the answer to database
                         await self.save_answer(author, question, ans)
                         # save the notification to database
-                        notification_message = ''
                         if recipient != author:
                             notification_message = 'commented on your post'
                             await self.save_notification(author, recipient, notification_message)
 
                         ''' the content to be sent as notification'''
                         response = {
+                            'reportingName': reportingName,
                             'command': notificationType,
                             'notifierUsername': author.username,
                             'notifierPhoto': author.userprofile.profile_photo.url,
-                            'message': notification_message or None,
-                            'quiz_id': quiz_id
+                            'content': ans if ans else '',
+                            'quizId': quiz_id
                         }
-                        # broadcasts the notification to be sent
+                        # broadcasting the notification
                         await self.channel_layer.group_send(
                             new_room,
                             {
@@ -69,7 +69,7 @@ class NotificationConsumer(AsyncConsumer):
                         )
                 elif notificationType == 'new_message':
                     chat_room = loaded_data.get('chat_room') or None
-                    message  = loaded_data.get('message') or None
+                    message = loaded_data.get('message') or None
                     idNum = get_active_contact_id(author.id, chat_room)
                     if idNum and idNum != -1:
                         newRoom = f'room_{idNum}'

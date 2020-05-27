@@ -15,7 +15,7 @@ class UserProfile(models.Model):
                                      default=os.path.join(settings.MEDIA_ROOT,
                                                           'profile_photos/default_profile_pic.png'), )
     study_field = models.ForeignKey(Cohort, on_delete=models.DO_NOTHING)
-    user_groups = ArrayField(models.IntegerField())
+    user_groups = ArrayField(models.IntegerField(), null=True, blank=True)
     current_interest = models.ForeignKey(Cohort, on_delete=models.DO_NOTHING, null=True,
                                          related_name='user_current_interest')
     school = models.CharField(max_length=250)

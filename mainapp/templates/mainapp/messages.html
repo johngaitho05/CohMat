@@ -1,20 +1,29 @@
 {% extends 'mainapp/base.html' %}
 {% block title %}
     <title>Messages</title>
-    {% endblock %}
+{% endblock %}
 {% load static %}
 {% block body %}
     <div class="col-md-6 offset-md-1 section-container">
-    <h3  id='page-heading'>Messages</h3>
-    <a class="smartchat-link" href="{% url 'chat:homepage' %}">OPen Smartchat</a>
-    <div></div>
+        <h3  id='page-heading'>Messages</h3>
+        <a class="smartchat-link" href="{% url 'chat:homepage' %}">OPen Smartchat</a>
+        <div></div>
         {% for contact, room, party, last_text in messages %}
             <a href="{% url 'chat:chat' room %}" class="message_anchor">
                 <div class="message-item" >
                     <img src="{% static 'images/avatar.jpeg' %}" class="profile-image" alt=""/>
                     <h6 class="contact-name">{{contact.first_name}} {{ contact.last_name }}</h6>
-                    <p class="message-time float-right timer"><span>{{ last_text.ago_time.count }}&nbsp;</span>{{ last_text.ago_time.desc }}</p>
-                   {{ last_text.timestamp }}
+                    {% if last_text.ago_time.desc %}
+                        <p class="time-element message-time float-right timer">
+                            {% if last_text.ago_time.count == 0 %}
+                                <span>Just now</span>
+                            {% else %}
+                                <span>{{ last_text.ago_time.count }}&nbsp;</span>{{ last_text.ago_time.desc }}
+                            {% endif %}
+                        </p>
+                        {% else %}
+                        <p class="message-time float-right timer">{{ last_text.time }}</p>
+                    {% endif %}
                     <p href="#" class="last-text">{{ last_text.sliced_text }}
                         {% if party == 'A'  and room.unread_B != 0 %}
                             <span class="badge">{{ room.unread_B }}</span>

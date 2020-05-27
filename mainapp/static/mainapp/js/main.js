@@ -1,8 +1,8 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* To change this license header, choose License Headers in Project Properties.
+* To change this template file, choose Tools | Templates
+* and open the template in the editor.
+*/
 
 // Update posts and notifications time after every minute
 setInterval('updateMinutesTime()',60000);
@@ -52,19 +52,37 @@ function styleJoinButton(){
 }
 
 // submitting a new post (question)
-function submit_question(){
-    let content = document.getElementById('question-text');
-    let group = document.getElementById('question-group');
-    let error_bar = document.getElementById('quiz-error');
-    if (content.value !== '' && group.value !== '0' ){
-        document.getElementById('question-form').submit();
-    }
-    else if(content.value === ''){
-        error_bar.innerHTML = "Content can't be empty";
+$('#question-form').submit(function(e){
+    e.preventDefault();
+    let target_group = $(this).find('#question-group').val();
+    let content = $(this).find('#question-text').val();
+    let image = $(this).find('#question-image').val();
+    let quizData = new FormData(this);
+    if(target_group){
+        if(content || image){
+            $.ajax({
+                method: "POST",
+                url: "new-post",
+                data: quizData,
+                success: function(data) {
+                    let message = data['message'];
+                    let code = data['code'];
+                    if(code === 0){
+                        window.location = '/'
+                    }else{
+                        $('#quiz-error').text(message)
+                    }
+                },
+                processData: false,
+                contentType: false,
+            });
+        }else{
+            $('#quiz-error').text('Content or Image is required');
+        }
     }else{
-        error_bar.innerHTML = "Please select the target group";
+        $('#quiz-error').text('Please select the target group');
     }
-}
+});
 
 // Opening an input when the user clicks on 'give your answer' button
 function openAnswerInput(id){
@@ -82,9 +100,9 @@ function openAnswerInput(id){
 
 
 function allow_profile_editing(){
-    // find all inputs in the page
+// find all inputs in the page
     let to_edit = document.querySelectorAll("input")
-    // make all the inputs editable by removing the readonly attribute
+// make all the inputs editable by removing the readonly attribute
     for (let i = 0; i< to_edit.length; i++){
         if(to_edit[i].name !== 'email'){
             to_edit[i].removeAttribute('readonly');
@@ -112,8 +130,8 @@ function update_profile(){
                 'current_interest':current_interest,
             },
             success: function(data) {
-                var message = data['message'];
-                var code = data['code'];
+                let message = data['message'];
+                let code = data['code'];
                 show_alert(message, code)
             }
         });
@@ -128,18 +146,18 @@ function show_alert(message, alert_code=1){
     let alert_class = get_alert_class(alert_code);
     let container = document.getElementById('alert-container');
     let content = `
-    <div class="alert ${alert_class} text-center alert-dismissible fade show" id="home-alert" role="alert">
-    <p id="home-alert-text">${message}</p>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
+<div class="alert ${alert_class} text-center alert-dismissible fade show" id="home-alert" role="alert">
+<p id="home-alert-text">${message}</p>
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+<span aria-hidden="true">&times;</span>
+</button>
 </div>
-    `;
-    // Close the alert after 10 seconds (10000 milliseconds)
+`;
+// Close the alert after 5 seconds (5000 milliseconds)
     container.innerHTML += content;
     setTimeout(function(){
         $(".alert").alert('close');
-    },10000);
+    },5000);
 }
 
 
@@ -184,4 +202,44 @@ function updateHourlyTime(){
             $(this).html('<span>1 &nbsp;</span>day ago')
         }
     });
+}
+
+function HandleAnswerNotification(data, currentUsername){
+    let username =  data['notifierUsername'];
+    let counter = $('#notification-count');
+    if(username !== currentUsername) {
+        if (counter.length) {
+            counter.text(parseInt(counter.text()) + 1)
+        } else {
+            $('#notifications-badge').html("<sup id='notification-count'>1</sup>");
+        }
+    }else{
+        show_alert('Answer added', 0)
+    }
+    let quiz = $('#'+'quiz_' + data['quizId']);
+    let counter2 = quiz.find($('.ans-counter'));
+    counter2.text(parseInt(counter2.text())+1);
+    let content = `<div class="answer-item">
+            <img src="${data['notifierPhoto']}" class="img-fluid profile-image float-left" />
+            <h5><b>${data['reportingName']}</b></h5>
+                <p class="float-right time-element answer-time  timer">
+                        <span>Just now</span>
+                </p>
+            <p class="answer-content ">${data['content']}</p>
+            <p class="reply-trigger">Reply</p>
+        </div>`;
+    let container = $('#'+ 'ansHolder_'+data['quizId']);
+    container.prepend(content)
+}
+
+function MessageNotificationHandler(data, currentUsername){
+    let username = data['notifierUsername'];
+    let counter = $('#messages-count');
+    if(username !== currentUsername) {
+        if (counter.length) {
+            counter.text(parseInt(counter.text()) + 1)
+        } else {
+            $('#messages-badge').html("<sup id='messages-count'>1</sup>");
+        }
+    }
 }

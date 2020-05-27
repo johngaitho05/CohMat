@@ -8,13 +8,18 @@ from django.utils import timezone
 
 class AgoTime:
     def __init__(self, date_time):
-        self.time = get_ago_time(date_time).replace(u'\xa0', ' ')
+        ago = get_ago_time(date_time)
+        if type(ago) != str:
+            print('not a string!!')
+            self.time = ago
+        else:
+            self.time = ago.replace(u'\xa0', ' ')
 
     def count(self):
-        return int(self.time.split(' ')[0])
+        return int(self.time.split(' ')[0]) if type(self.time) == str else None
 
     def desc(self):
-        return self.time[len(str(self.count())) + 1:]
+        return self.time[len(str(self.count())) + 1:] if type(self.time) == str else None
 
     def __str__(self):
         return self.time
@@ -23,13 +28,14 @@ class AgoTime:
 @register.filter
 def get_ago_time(passed_time):
     diff = abs(passed_time - timezone.now())
-    if diff.days <= 0:
+    d = diff.days
+    if d <= 0:
         span = timesince(passed_time)
         span = span.split(",")[0]  # just the most significant digit
-        if span == "0 minutes":
-            return "seconds ago"
         return "%s ago" % span
-    return date(passed_time)
+    elif d == 1:
+        return '1 day ago'
+    return passed_time
 
 
 class CustomTimezoneMiddleware:

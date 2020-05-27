@@ -1,23 +1,23 @@
 import re
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
+
+from accounts.forms import LoginForm
 from chat.views import add_chat_rooms
 from .models import *
 from mainapp.models import *
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.core.mail import EmailMessage
-from django.utils.safestring import mark_safe
-from django.http import JsonResponse
 
 
 def anonymous_required(function=None, redirect_url=None):
@@ -49,8 +49,10 @@ def register_view(request):
         pass1 = data['password1']
         pass2 = data['password2']
         school = data['school']
-        groups = create_groups_list(data['cohorts'])
-        if first_name and last_name and username and email and study_field and pass1 and pass2 and groups and school:
+        groups = (data['cohorts'])
+        defaultGroup = [int(study_field)]
+        groups = create_groups_list(groups) + defaultGroup if groups else defaultGroup
+        if first_name and last_name and username and email and study_field and pass1 and pass2 and school:
             if not is_valid_email(email):
                 response = {"message": "Invalid email address", "code": 1}
                 return JsonResponse(response)
@@ -71,11 +73,11 @@ def register_view(request):
                 # create user profile
                 try:
                     profile_photo = request.FILES['profile_photo']
-                    new_profile = create_profile(new_user, study_field, groups, school, profile_photo)
+                    create_profile(new_user, study_field, school, groups, profile_photo)
                 except MultiValueDictKeyError:
                     # user did not upload profile picture. Use default profile pic
                     print('no file found')
-                    new_profile = create_profile(new_user, study_field, groups, school)
+                    create_profile(new_user, study_field, school, groups)
 
                 # add channels through which user can chat one-on-one with each member
                 add_chat_rooms(new_user)
@@ -108,25 +110,26 @@ def login_view(request):
     if request.method == 'POST':
         username_or_email = request.POST['username']
         password = request.POST['password']
-        user = authenticate(username=username_or_email, password=password)
-        if user is not None and user.is_active:
-            login(request, user)
-            return redirect('mainapp:homeView')
-
-        else:
+        try:
+            user = User.objects.get(username=username_or_email)
+        except User.DoesNotExist:
             user = User.objects.filter(email=username_or_email).first()
+        if user:
+            if not user.is_active:
+                return render(request, 'accounts/confirm-email.html', {'email': user.email})
+            user = authenticate(username=username_or_email, password=password)
             if user:
                 auth_user = authenticate(username=user.username, password=password)
-                if auth_user is not None and auth_user.is_active:
+                if auth_user is not None:
                     login(request, auth_user)
                     return redirect('mainapp:homeView')
-            return render(request, 'accounts/login.html', {'error_message': 'Invalid credentials'})
+        return render(request, 'accounts/login.html', {'error_message': 'Invalid credentials'})
 
     return render(request, 'accounts/login.html')
 
 
 # Create profile for the registered user
-def create_profile(user, field_id, groups, school, profile_photo=None):
+def create_profile(user, field_id, school, groups, profile_photo=None):
     study_field = Cohort.objects.get(id=int(field_id))
     if profile_photo is not None:
         handle_uploaded_file(profile_photo, 'profile_photos')
@@ -179,23 +182,24 @@ def get_subcohorts(request):
             cohort = Cohort.objects.get(id=coh_id)
         except Cohort.DoesNotExist:
             raise Http404("No cohort matches the given query.")
-        subcohorts = cohort.get_descendants(include_self=True)
+        subCohorts = cohort.get_descendants(include_self=False)
         cohorts_list = []
-        index = 0
-        for cohort in subcohorts:
+        # index = 0
+        for cohort in subCohorts:
             cohorts_list.append(cohort_to_json(cohort))
-        subcohorts = cohorts_list
-        return JsonResponse(subcohorts, safe=False)
+        subCohorts = cohorts_list
+        return JsonResponse(subCohorts, safe=False)
     else:
-        raise Http404("Request is not ajax")
+        raise Http404("Bad Request")
 
 
 def cohort_to_json(cohort):
+    members = UserProfile.objects.filter(user_groups__contains=[cohort.id]).count()
     return {
         'id': cohort.id,
         'title': cohort.title,
         'logo': cohort.logo.url,
-        'no_of_members': cohort.no_of_members,
+        'no_of_members': members,
         'total_posts': cohort.total_posts,
         'date_created': str(cohort.date_created)
     }
@@ -217,7 +221,7 @@ def increment_group_members(groups):
 @anonymous_required
 def email_confirmation_view(request):
     if request.method == 'POST':
-        return render(request, 'accounts/confirm-email.html', {'email': request.POST['email']})
+        return render(request, 'accounts/confirm-email.html', {'email': request.POST['email'], 'first': True})
     return redirect('accounts:register')
 
 
@@ -255,7 +259,7 @@ def resend_activation_link(request):
             else:
                 response = {'message': 'Something went wrong!', 'code': 1}
             return JsonResponse(response)
-    return Http404("Invalid request")
+    raise Http404("Something went wrong")
 
 
 def is_valid_email(email):

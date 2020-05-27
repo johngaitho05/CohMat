@@ -34,13 +34,17 @@
             <div class="card" id="quiz_{{ quiz.id }}">
                 <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}
                     <span>></span> {{ quiz.target_cohort }}
-                    <small class="post-time float-right timer">
-                        {% if quiz.ago_time.count == 0 %}
-                            <span>Just now</span>
-                        {% else %}
-                            <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}
-                        {% endif %}
-                    </small>
+                    {% if quiz.ago_time.desc %}
+                        <small class="time-element post-time float-right timer">
+                            {% if quiz.ago_time.count == 0 %}
+                                <span>Just now</span>
+                            {% else %}
+                                <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}
+                            {% endif %}
+                        </small>
+                    {% else %}
+                        <small class="time-element post-time float-right">{{ quiz.time }}</small>
+                    {% endif %}
                 </p>
                 <p>{{quiz.content}}</p>
                 {%  if quiz.image %}
@@ -74,18 +78,22 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <div class="modal-body">
+                            <div class="modal-body" id="ansHolder_{{ quiz.id }}">
                                 {% for answer in answers %}
                                     <div class="answer-item">
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
-                                        <p class="float-right answer-time timer">
-                                            {% if answer.ago_time.count == 0 %}
-                                                <span>Just now</span>
-                                            {% else %}
-                                                <span>{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
-                                            {% endif %}
-                                        </p>
+                                        {% if answer.ago_time.desc %}
+                                            <p class="float-right time-element answer-time  timer">
+                                                {% if answer.ago_time.count == 0 %}
+                                                    <span>Just now</span>
+                                                {% else %}
+                                                    <span>{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
+                                                {% endif %}
+                                            </p>
+                                        {% else %}
+                                            <p class="float-right answer-time time-element">{{ answer.time }}</p>
+                                        {% endif %}
                                         <p class="answer-content ">{{ answer.content }}</p>
                                         <p class="reply-trigger">Reply</p>
                                     </div>

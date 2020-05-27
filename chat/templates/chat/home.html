@@ -123,17 +123,23 @@
                                         {% else %}
                                             <p class="text-center date" >{{ date }}</p>
                                         {% endif %}
-                                        {% for text,time in texts %}
+                                        {% for text in texts %}
                                             {% if text.author == user %}
-                                                <div class="sent">
-                                                    <p > {{ text.content }}</p>
-                                                    <p class ="time">{{ time }}</p>
-                                                    <input class="delete-sent" type="checkbox" name="to_delete" value="{{ text.id }}"/>
-                                                </div>
+                                                {% if party == 'A'  and text.deleted_B == False or  party == 'B' and text.deleted_A == False %}
+                                                    <div class="sent">
+                                                        <p > {{ text.content }}</p>
+                                                        <p class ="time">{{ text.time|date:"H:i" }}</p>
+                                                        <input class="delete-sent" type="checkbox" name="to_delete" value="{{ text.id }}"/>
+                                                    </div>
+                                                {% endif %}
                                             {% else %}
                                                 <div class="replies">
-                                                    <p> {{ text.content }}</p>
-                                                    <p class ="time">{{ time }}</p>
+                                                    {% if party == 'A'  and text.deleted_A or  party == 'B' and text.deleted_B %}
+                                                        <p> This message was deleted</p>
+                                                    {% else %}
+                                                        <p> {{ text.content }}</p>
+                                                        <p class ="time">{{ text.time|date:"H:i" }}</p>
+                                                    {% endif %}
                                                     <input class="delete-reply" type="checkbox" name="to_delete" value="{{ text.id }}"/>
                                                 </div>
                                             {% endif %}
@@ -185,24 +191,23 @@
                 let message = data['message'];
                 let author = message['author'];
                 let last_text = data['last_text'];
-
-                let msgDiv = document.createElement('div');
-                let msgTag = document.createElement('p');
-                let timeTag = document.createElement('p');
-                msgTag.textContent = message.content;
-                timeTag.textContent = message.time;
-                timeTag.className = "time";
+                let content = '';
                 if(author === username){
-                    msgDiv.className = "sent";
+                    content = `<div class="sent">
+                                    <p> ${message.content}</p>
+                                    <p class ="time">${message.time}</p>
+                                    <input class="delete-sent" type="checkbox" name="to_delete" value="${message.id}"/>
+                                </div>`
                 }else{
-                    msgDiv.className = "replies";
+                    content = `<div class="replies">
+                                        <p> ${message.content}</p>
+                                        <p class ="time">${message.time}</p>
+                                        <input class="delete-reply" type="checkbox" name="to_delete" value="${message.id}"/>
+                                    </div>`
                 }
-                msgDiv.appendChild(msgTag);
-                msgDiv.appendChild(timeTag);
-                document.querySelector('#chatlog').appendChild(msgDiv);
-                let active_contact = document.getElementById('{{ active_contact.id }}');
-                console.log(active_contact.innerText);
-                active_contact.innerHTML = last_text;
+                $('#chatlog').append(content);
+                let active_contact = $('#{{ active_contact.id }}');
+                active_contact.text(last_text);
             };
             chatSocket.onclose = function() {
                 console.error('Chat socket closed unexpectedly');
@@ -220,7 +225,6 @@
                 let datetime = new Date();
                 let current_time = datetime.getDate()+ '-'+(datetime.getMonth()+1)+'-'+datetime.getFullYear()+ ' '
                     +datetime.getHours()+':'+datetime.getMinutes()+':'+datetime.getSeconds();
-                {#notifySocket.send#}
                 let toSend =JSON.stringify({
                     'command': 'new_message',
                     'message': message,

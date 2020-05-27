@@ -339,13 +339,18 @@ function showResendForm(){
     form.removeAttr('hidden')
 }
 
+$('#resend-link-form').submit(function(e){
+    e.preventDefault();
+    resendLink();
+});
+
 function resendLink() {
     let old_email = $('#old-email').val();
     let new_email = $('#new-email').val();
     if (old_email  && new_email) {
         $.ajax({
             method: "POST",
-            url: "resend-link",
+            url: '/accounts/register/resend-link',
             data: {'old-email': old_email, 'new-email': new_email},
             success: function (data) {
                 let code = data['code'];

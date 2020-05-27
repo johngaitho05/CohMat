@@ -13,13 +13,16 @@
 <div id="alert-container"></div>
 <div class="row success-row">
     <div class="col-md-6 offset-md-3 success-col success-div">
+        {% if first %}
         <i class="far fa-check-circle success-logo"></i>
         <h4 class="success-header">Account Created</h4>
-        <p>We have sent an activation link to <b>{{ email }}</b>. Click on the link to activate your account</p>
-        <p><b>OR</b></p>
+        {% endif %}
+        <p>Your Account was created but it is not yet active. An activation link was sent to <b>{{ email }}</b>.
+            Click on the link to activate your account</p>
         <a href="#" onclick="resendLink()">Resend link</a><br/>
         <a onclick="showResendForm()" href="#">Edit Email</a>
-        <form id="resend-link-form" method="post" action="" hidden>
+        <form id="resend-link-form" method="post" action="{% url 'accounts:edit-email' %}" hidden>
+            {% csrf_token %}
             <input type="hidden" id="old-email" name="old-email" value="{{ email }}"/>
             <input type="email" placeholder="Type a new email address" id="new-email"
                    name="new-email" value="{{ email }}" class="form-control"/>
