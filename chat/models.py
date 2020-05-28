@@ -5,14 +5,6 @@ from projectdir.utils import AgoTime
 User = get_user_model()
 
 
-class Contact(models.Model):
-    user = models.ForeignKey(User, related_name="user_contacts", on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
-
-    def __str__(self):
-        return self.name
-
-
 class Message(models.Model):
     author = models.ForeignKey(User, related_name="user_messages", on_delete=models.CASCADE)
     content = models.TextField()

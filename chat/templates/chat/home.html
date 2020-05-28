@@ -115,36 +115,36 @@
                                 <form method="post" action="{% url 'chat:delete_texts' %}" id="delete-form">
                                     {% csrf_token %}
                                     <input type="hidden" name="room_name" value="{{ room_name }}"/>
-                                    {% for date,texts in texts_list %}
-                                        {% if date == today %}
-                                            <p class="text-center date" >Today</p>
-                                        {%  elif date == yesterday %}
-                                            <p class="text-center date" >Yesterday</p>
-                                        {% else %}
-                                            <p class="text-center date" >{{ date }}</p>
-                                        {% endif %}
-                                        {% for text in texts %}
-                                            {% if text.author == user %}
-                                                {% if party == 'A'  and text.deleted_B == False or  party == 'B' and text.deleted_A == False %}
+                                    {% if texts_list %}
+                                        {% for date,texts in texts_list %}
+                                            {% if date == today %}
+                                                <p class="text-center date" >Today</p>
+                                            {%  elif date == yesterday %}
+                                                <p class="text-center date" >Yesterday</p>
+                                            {% else %}
+                                                <p class="text-center date" >{{ date }}</p>
+                                            {% endif %}
+                                            {% for text in texts %}
+                                                {% if text.author == user %}
                                                     <div class="sent">
                                                         <p > {{ text.content }}</p>
                                                         <p class ="time">{{ text.time|date:"H:i" }}</p>
                                                         <input class="delete-sent" type="checkbox" name="to_delete" value="{{ text.id }}"/>
                                                     </div>
+                                                {% else %}
+                                                    <div class="replies">
+                                                        {% if text.deleted_A and party == 'A' or text.deleted_B and party == 'B' %}
+                                                            <p> This message was deleted</p>
+                                                        {% else %}
+                                                            <p> {{ text.content }}</p>
+                                                            <p class ="time">{{ text.time|date:"H:i" }}</p>
+                                                        {% endif %}
+                                                        <input class="delete-reply" type="checkbox" name="to_delete" value="{{ text.id }}"/>
+                                                    </div>
                                                 {% endif %}
-                                            {% else %}
-                                                <div class="replies">
-                                                    {% if party == 'A'  and text.deleted_A or  party == 'B' and text.deleted_B %}
-                                                        <p> This message was deleted</p>
-                                                    {% else %}
-                                                        <p> {{ text.content }}</p>
-                                                        <p class ="time">{{ text.time|date:"H:i" }}</p>
-                                                    {% endif %}
-                                                    <input class="delete-reply" type="checkbox" name="to_delete" value="{{ text.id }}"/>
-                                                </div>
-                                            {% endif %}
+                                            {% endfor %}
                                         {% endfor %}
-                                    {% endfor %}
+                                    {% endif %}
                                 </form>
                             </div>
                             <form  class="form-inline" id="input-message">

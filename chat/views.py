@@ -1,17 +1,12 @@
+import json
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
-
 from accounts.models import UserProfile
-from .models import Contact, Message, ChatRoom
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-import random
-from data_structures.Hashing.HashTable import HashTable
-from data_structures.Queue.PriorityQueue import PriorityQueue
 from datetime import date, datetime, timedelta
 from django.utils.safestring import mark_safe
-import json
+from .models import Message, ChatRoom
 
 
 @login_required
@@ -28,7 +23,6 @@ def contacts_view(request):
 @login_required
 def chat(request, room_name):
     party = other_user_party(request.user.id, room_name)
-    print(party)
     if not party:
         raise Http404('Access Denied!')
     updateUnread(party, room_name, request.user)
@@ -37,7 +31,7 @@ def chat(request, room_name):
     room_to_json = mark_safe(json.dumps(room_name))
     username_json = mark_safe(json.dumps(request.user.username))
     active_contact = get_active_contact(request.user.id, room_name)
-    texts_list = get_texts(room_name)
+    texts_list = get_texts(room_name, request.user)
     chat_list = get_recent_chats(request.user)
     if not texts_list:
         texts_list = 'Null'
@@ -63,7 +57,9 @@ def chat(request, room_name):
                        'room_name_json': room_to_json,
                        'username_json': username_json,
                        'today': today,
-                       'yesterday': yesterday})
+                       'yesterday': yesterday,
+                       'party': party
+                       })
 
 
 @login_required
@@ -110,8 +106,13 @@ def get_recent_chats(user):
         contact = get_active_contact(user.id, chat_room.name)
         if contact:
             party = other_user_party(user.id, chat_room.name)
-            last_text = chat_room.last_message
-            chat_list[i] = (contact, chat_room, party, last_text)
+            messages = None
+            if party == 'A':
+                messages = Message.objects.filter(chat_room=chat_room.name, deleted_B=False).order_by('id')
+            elif party == 'B':
+                messages = Message.objects.filter(chat_room=chat_room.name, deleted_A=False).order_by('id')
+            last_text = messages.last() if messages else None
+            chat_list[i] = (contact, chat_room, party, last_text) if messages else None
         else:
             chat_list[i] = None
     return [recent for recent in chat_list if recent]
@@ -180,23 +181,34 @@ def other_user_party(user_id, room_name):
     return
 
 
-def get_texts(room_name):
-    messages = Message.objects.filter(chat_room=room_name)
+# Getting actual messages that will appear on the chat panel
+def get_texts(room_name, user):
+    party = other_user_party(user.id, room_name)
+    messages = Message.objects.filter(chat_room=room_name).order_by('id')
     date_list = [message.time.date() for message in messages]
     date_set = sorted(set(date_list))
     texts_list = [None] * len(date_set)
     for i in range(len(date_set)):
         message_date = date_set[i]
-        '''TODO: look for a more elegant way to slice the time into HH:MM'''
-        texts = [message for message in messages if
-                 message.time.date() == message_date]
+        texts = [message for message in messages if message.time.date() ==
+                 message_date and not message_is_deleted(message, party)]
 
-        texts_list[i] = (message_date, texts)
+        texts_list[i] = (message_date, texts) if texts else None
+        for j in range(len(texts_list)):
+            if texts_list[j] is None:
+                texts_list.pop(j)
     return texts_list
+
+
+def message_is_deleted(message, party):
+    if party == 'A' and message.deleted_B or party == 'B' and message.deleted_A:
+        return True
+    return False
 
 
 @login_required
 def delete_texts(request):
+    profile = request.user.userprofile
     if request.method == 'POST':
         room_name = request.POST['room_name']
         to_delete = request.POST.getlist('to_delete')
@@ -209,6 +221,8 @@ def delete_texts(request):
                     message = Message.objects.get(id=int(message_id))
                     if message.deleted_A:
                         message.delete()
+                        profile.messages_count -= 1
+                        profile.save()
                     else:
                         message.deleted_B = True
                         message.save()
@@ -217,6 +231,8 @@ def delete_texts(request):
                     message = Message.objects.get(id=int(message_id))
                     if message.deleted_B:
                         message.delete()
+                        profile.messages_count -= 1
+                        profile.save()
                     else:
                         message.deleted_A = True
                         message.save()
@@ -252,7 +268,8 @@ def _updateUnread(user, n):
 def update_last_message(room_name):
     try:
         chat_room = ChatRoom.objects.get(name=room_name)
-        message = Message.objects.filter(chat_room=chat_room, deleted_A=False, deleted_B=False).order_by('-time').first()
+        message = Message.objects.filter(chat_room=chat_room, ).order_by(
+            '-time').first()
         chat_room.last_message = message
         chat_room.save()
     except ChatRoom.DoesNotExist:
