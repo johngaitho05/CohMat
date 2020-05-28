@@ -136,6 +136,11 @@ body{
 .contact{
     cursor: pointer;
 }
+.last-text{
+    padding-left: 50px;
+    color:#0900ff;
+    font-style: italic
+}
 
 #chat_init{
     text-decoration: none;

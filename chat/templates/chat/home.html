@@ -51,8 +51,6 @@
                             <div style="float:left; height:100%">
                                 <img src="{% static 'chat/img/man.png' %}" alt="image" class="dp"/>
                                 <h4>{{ contact.first_name }} {{ contact.last_name }}</h4>
-                                {#                                <br />#}
-                                {#                                <small style="padding-left: 50px; color:black">{{ contact.phone }}</small>#}
                             </div>
                         </div>
                     </a>
@@ -63,14 +61,18 @@
                 </script>
             {% elif recents %}
                 {% if recents != 'Null' %}
-                    {% for contact, room, party, last_text in recents %}
+                    {% for contact, room, last_text, unread in recents %}
                         <a href="javascript:{window.location.pathname = '/messaging/chat/{{room.name}}';}" id="chat_init">
                             <div class="card contact">
                                 <div class="image" style="float:left; height:100%">
                                     <img src="{{ contact.userprofile.profile_photo.url }}" alt="image" class="dp"/>
                                     <h4>{{ contact.first_name }} {{ contact.last_name }}</h4>
                                     <br />
-                                    <small style="padding-left: 50px;color:#0900ff;font-style: italic" id="{{ contact.id }}">{{ last_text.sliced_text }}</small>
+                                    {% if last_text.deleted_A and party == 'A' or last_text.deleted_B and party == 'B' %}
+                                        <small class="last-text" id="{{ contact.id }}">This message was deleted</small>
+                                    {% else %}
+                                        <small class="last-text" id="{{ contact.id }}">{{ last_text.sliced_text }}</small>
+                                    {% endif %}
                                 </div>
                             </div>
                         </a>
@@ -188,6 +190,7 @@
             let notifySocket = new ReconnectingWebSocket(endpoint2);
             chatSocket.onmessage = function(e) {
                 let data = JSON.parse(e.data);
+                console.log(data);
                 let message = data['message'];
                 let author = message['author'];
                 let last_text = data['last_text'];
@@ -204,6 +207,7 @@
                                         <p class ="time">${message.time}</p>
                                         <input class="delete-reply" type="checkbox" name="to_delete" value="${message.id}"/>
                                     </div>`
+                 markAsRead(message.id);
                 }
                 $('#chatlog').append(content);
                 let active_contact = $('#{{ active_contact.id }}');

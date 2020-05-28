@@ -142,7 +142,7 @@ function update_profile(){
 }
 
 // Show alert based on the message received from the server after ajax form submission
-function show_alert(message, alert_code=1){
+function show_alert(message, alert_code=1,delay=5000){
     let alert_class = get_alert_class(alert_code);
     let container = document.getElementById('alert-container');
     let content = `
@@ -157,7 +157,7 @@ function show_alert(message, alert_code=1){
     container.innerHTML += content;
     setTimeout(function(){
         $(".alert").alert('close');
-    },5000);
+    },delay);
 }
 
 
@@ -214,7 +214,7 @@ function HandleAnswerNotification(data, currentUsername){
             $('#notifications-badge').html("<sup id='notification-count'>1</sup>");
         }
     }else{
-        show_alert('Answer added', 0)
+        show_alert('Answer added', 0,3000)
     }
     let quiz = $('#'+'quiz_' + data['quizId']);
     let counter2 = quiz.find($('.ans-counter'));
@@ -232,7 +232,7 @@ function HandleAnswerNotification(data, currentUsername){
     container.prepend(content)
 }
 
-function MessageNotificationHandler(data, currentUsername){
+function HandleMessageNotification(data, currentUsername){
     let username = data['notifierUsername'];
     let counter = $('#messages-count');
     if(username !== currentUsername) {

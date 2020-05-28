@@ -8,7 +8,7 @@
         <h3  id='page-heading'>Messages</h3>
         <a class="smartchat-link" href="{% url 'chat:homepage' %}">OPen Smartchat</a>
         <div></div>
-        {% for contact, room, party, last_text in messages %}
+        {% for contact, room,last_text,unread in messages %}
             <a href="{% url 'chat:chat' room %}" class="message_anchor">
                 <div class="message-item" >
                     <img src="{% static 'images/avatar.jpeg' %}" class="profile-image" alt=""/>
@@ -21,14 +21,12 @@
                                 <span>{{ last_text.ago_time.count }}&nbsp;</span>{{ last_text.ago_time.desc }}
                             {% endif %}
                         </p>
-                        {% else %}
+                    {% else %}
                         <p class="message-time float-right timer">{{ last_text.time }}</p>
                     {% endif %}
                     <p href="#" class="last-text">{{ last_text.sliced_text }}
-                        {% if party == 'A'  and room.unread_B != 0 %}
-                            <span class="badge">{{ room.unread_B }}</span>
-                        {% elif party == 'B' and room.unread_A != 0 %}
-                            <span class="badge">{{ room.unread_A }}</span>
+                        {% if unread %}
+                            <span class="badge">{{ unread}}</span>
                         {% endif %}
                     </p>
                 </div>

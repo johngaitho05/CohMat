@@ -101,12 +101,8 @@ class NotificationConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def save_answer(self, author, question, answer):
-        question.total_answers += 1
-        question.save()
         return Answer.objects.create(author=author, question=question, content=answer)
 
     @database_sync_to_async
     def save_notification(self, author, recipient, content):
-        recipient.userprofile.notifications_count += 1
-        recipient.userprofile.save()
         return Notification.objects.create(author=author, recipient=recipient, content=content)

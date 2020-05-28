@@ -56,3 +56,15 @@ function toggle_delete_view(){
     }
 }
 
+function markAsRead(id){
+    $.ajax({
+        method: "POST",
+        url: "/messaging/mark-as-read",
+        data: {
+            'msgId':id
+        },
+        success: function(data) {
+            console.log('Marked as read')
+        }
+    });
+}

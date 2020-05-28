@@ -35,13 +35,17 @@
                 <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}
                     <span>></span> {{ quiz.target_cohort }}
                     {% if quiz.ago_time.desc %}
-                        <small class="time-element post-time float-right timer">
-                            {% if quiz.ago_time.count == 0 %}
-                                <span>Just now</span>
-                            {% else %}
-                                <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}
-                            {% endif %}
-                        </small>
+                        {% if quiz.ago_time.desc == 'day ago' %}
+                            <small class="time-element post-time float-right">Yesterday at {{ quiz.time|date:"H:i" }}</small>
+                        {% else %}
+                            <small class="time-element post-time float-right timer">
+                                {% if quiz.ago_time.count == 0 %}
+                                    <span>Just now</span>
+                                {% else %}
+                                    <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}
+                                {% endif %}
+                            </small>
+                        {% endif %}
                     {% else %}
                         <small class="time-element post-time float-right">{{ quiz.time }}</small>
                     {% endif %}
@@ -84,13 +88,17 @@
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
                                         {% if answer.ago_time.desc %}
-                                            <p class="float-right time-element answer-time  timer">
-                                                {% if answer.ago_time.count == 0 %}
-                                                    <span>Just now</span>
-                                                {% else %}
-                                                    <span>{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
-                                                {% endif %}
-                                            </p>
+                                            {% if answer.ago_time.desc == 'day ago' %}
+                                                <small class="time-element post-time float-right">Yesterday at {{ answer.time|date:"H:i" }}</small>
+                                            {% else %}
+                                                <small class="time-element post-time float-right timer">
+                                                    {% if answer.ago_time.count == 0 %}
+                                                        <span>Just now</span>
+                                                    {% else %}
+                                                        <span>{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
+                                                    {% endif %}
+                                                </small>
+                                            {% endif %}
                                         {% else %}
                                             <p class="float-right answer-time time-element">{{ answer.time }}</p>
                                         {% endif %}

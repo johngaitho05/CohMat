@@ -48,8 +48,8 @@
             <li class="nav-item">
                 <a class="nav-link" id="notifications_link" href="{% url 'mainapp:notificationsView' %}">
                     <small class="notifier" id="notifications-badge">
-                        {% if user.userprofile.notifications_count != 0 %}
-                            <sup id="notification-count">{{ user.userprofile.notifications_count }}</sup>
+                        {% if unread_notifications %}
+                            <sup id="notification-count">{{ unread_notifications }}</sup>
                         {% endif %}
                     </small>
                     <i class="fas fa-bell"></i> Notifications</a>
@@ -57,8 +57,8 @@
             <li class="nav-item">
                 <a class="nav-link" id="messages_link" href="{% url 'mainapp:messagesView' %}">
                     <small class="notifier" id="messages-badge">
-                        {% if user.userprofile.messages_count != 0 %}
-                            <sup id="messages-count">{{ user.userprofile.messages_count }}</sup>
+                        {% if unread_messages %}
+                            <sup id="messages-count">{{ unread_messages }}</sup>
                         {% endif %}
                     </small>
                     <i class="fas fa-comment"></i> Messages</a>
@@ -196,7 +196,6 @@
 
     // websocket scripts
     loc = window.location;
-    console.log(loc);
     wsStart  = 'ws://';
     if (loc.protocol === 'https:'){
         wsStart = 'wss://'
@@ -209,7 +208,7 @@
         if(type === 'new_answer'){
             HandleAnswerNotification(data, '{{ user.username }}')
         }else if(type === 'new_message'){
-            MessageNotificationHandler(data, '{{ user.username }}')
+            HandleMessageNotification(data, '{{ user.username }}')
         }
     };
     socket.onopen= function(e){

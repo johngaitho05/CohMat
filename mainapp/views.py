@@ -30,6 +30,7 @@ class HomeView(ListView):
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         data = get_user_data(self.request.user)
+        notificationsCount = Notification.objects.filter(recipient=self.request.user, seen=False).count()
         today = timezone.now()
         yesterday = today - timezone.timedelta(days=1)
         context.update({
@@ -38,7 +39,9 @@ class HomeView(ListView):
             'contacts': data['contacts'],
             'user_cohorts': data['user_cohorts'],
             'today': today.date(),
-            'yesterday': yesterday
+            'yesterday': yesterday,
+            'unread_messages': data['unread_messages'],
+            'unread_notifications': notificationsCount
         })
         return context
 
@@ -86,15 +89,19 @@ class NotificationsView(ListView):
 
     def get_context_data(self, **kwargs):
         data = get_user_data(self.request.user)
-        profile = self.request.user.userprofile
-        profile.notifications_count = 0
-        profile.save()
+        notifications = Notification.objects.filter(recipient=self.request.user, seen=False)
+        for item in notifications:
+            item.seen = True
+            item.save()
         context = super(NotificationsView, self).get_context_data(**kwargs)
         context.update({
             'active_link': 'notifications_link',
             'contacts': data['contacts']
         })
         return context
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user).order_by('-time')
 
 
 @method_decorator(login_required, name='dispatch')
@@ -133,7 +140,7 @@ def get_user_data(user):
         if cohort not in user_cohorts:
             to_recommend.append(cohort)
     random.shuffle(to_recommend)
-    return {'to_recommend': to_recommend[:100], 'contacts': contacts,
+    return {'to_recommend': to_recommend[:100], 'contacts': contacts[0], 'unread_messages': contacts[1],
             'questions': questions_list[:100], 'user_cohorts': user_cohorts}
 
 

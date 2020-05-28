@@ -9,6 +9,7 @@ class Message(models.Model):
     author = models.ForeignKey(User, related_name="user_messages", on_delete=models.CASCADE)
     content = models.TextField()
     time = models.DateTimeField(auto_now=True)
+    read = models.BooleanField(default=False)
     chat_room = models.CharField(max_length=50)
     deleted_A = models.BooleanField(default=False)
     deleted_B = models.BooleanField(default=False)
@@ -31,8 +32,6 @@ class ChatRoom(models.Model):
     last_message = models.ForeignKey(Message, null=True,
                                      related_name='chatroom_last_message',
                                      on_delete=models.SET_NULL)
-    unread_A = models.IntegerField(default=0)
-    unread_B = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.name)

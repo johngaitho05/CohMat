@@ -29,7 +29,6 @@ class Question(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     target_cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE)
     content = models.TextField()
-    total_answers = models.IntegerField(default=0)
     image = models.FileField(upload_to='images', blank=True, default='')
 
     def ago_time(self):
@@ -44,6 +43,8 @@ class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='toNotify')
     content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
+    seen = models.BooleanField(default=False)
+    read = models.BooleanField(default=False)
 
     def ago_time(self):
         return AgoTime(self.time)

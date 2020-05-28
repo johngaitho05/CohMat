@@ -41,16 +41,8 @@ class ChatConsumer(WebsocketConsumer):
             message = Message.objects.create(author=author_user, content=content, chat_room=room_name,
                                              time=current_time)
             update_last_message(room_name)
-            party = other_user_party(author_user.id, room_name)
-            room = ChatRoom.objects.get(name=room_name)
-            if party == 'A':
-                room.unread_A += 1
-            elif party == 'B':
-                room.unread_B += 1
-            room.save()
             recipient = get_active_contact(author_user.id, room_name)
-            recipient.userprofile.messages_count += 1
-            recipient.userprofile.save()
+            print(recipient)
             content = {
                 'command': 'new_message',
                 'author': author_user.username,
@@ -65,7 +57,6 @@ class ChatConsumer(WebsocketConsumer):
     }
 
     def connect(self):
-        print(self.scope['url_route']['kwargs'])
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
 
