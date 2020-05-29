@@ -62,7 +62,7 @@ $('#question-form').submit(function(e){
         if(content || image){
             $.ajax({
                 method: "POST",
-                url: "new-post",
+                url: "/new-post/",
                 data: quizData,
                 success: function(data) {
                     let message = data['message'];

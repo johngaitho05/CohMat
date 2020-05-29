@@ -17,6 +17,9 @@ body{
     margin-right: 0;
     margin-left:0;
 }
+input:focus, textarea:focus{
+    border: 1px solid #04a2ff !important;
+}
 
 /*SIDENAV */
 .sidenav {
@@ -27,7 +30,8 @@ body{
   z-index: 1; /* Stay on top */
   top: 10%; /* Stay at the top */
   right: -50px;
-  background-color: #2ad6f5; /* Black*/
+  /*background-color: #2ad6f5; !* Black*!*/
+    background-color: #004eff;
   overflow-x: hidden; /* Disable horizontal scroll */
   padding-top: 30px; /* Place content 60px from the top */
   transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
@@ -44,7 +48,8 @@ body{
 
 /* When you mouse over the navigation links, change their color */
 .sidenav a:hover {
-  color: #1E90FF;
+  color: #06ffab;
+    text-decoration: underline;
 }
 
 /* Position and style the close button (top right corner) */
@@ -66,7 +71,8 @@ body{
 
 /*MAIN NAVIGATION */
 .bg-light{
-    background-color: #f768d7 !important;
+    /*background-color: #f768d7 !important;*/
+    background-color: #FFB6C1 !important;
     padding: 0;
     border-radius: 0;
 }
@@ -98,12 +104,7 @@ body{
 #navbarItems .active:hover{
     text-decoration: none;
 }
-/*#notifications-badge, #messages-badge{*/
-/*    display:inline;*/
-/*    padding: 0;*/
-/*    margin:0;*/
 
-/*}*/
 #notification-count, #messages-count{
     margin-right:-10px;
     padding: 1px 3px;
@@ -167,7 +168,7 @@ body{
 .column-title{
     font-size: 16px;
     color: white;
-    background-color: #0bdaff;
+    background-color: #1b90ff;
     display: block;
     padding: 10px;
 }
@@ -217,20 +218,21 @@ body{
     display: inline;
 }
 .messaging_link{
-    font-size:20px;
+    font-size:13px;
     color: #6667ff;
     font-weight: 700;
 }
 
-
-#quick-chat-panel td:not(:last-of-type){
-    width: fit-content;
-    font-size: 15px;
-    min-width: 170px;
-
+table{
+    width:100%;
+    text-align: justify-all;
 }
 
+
 /*QUESTION MODAL*/
+#questionModal .modal-content{
+    background-color: #F5FFFA !important;
+}
 #questionModal .modal-header{
     padding: 5px 15px;
     margin-top: 15px;
@@ -274,7 +276,7 @@ body{
     background: #007bff;
 }
 #quiz-error{
-    color: #ff2164;
+    color: #D2691E;
     margin-bottom: 0;
 }
 

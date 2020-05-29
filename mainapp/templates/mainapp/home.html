@@ -35,19 +35,15 @@
                 <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}
                     <span>></span> {{ quiz.target_cohort }}
                     {% if quiz.ago_time.desc %}
-                        {% if quiz.ago_time.desc == 'day ago' %}
-                            <small class="time-element post-time float-right">Yesterday at {{ quiz.time|date:"H:i" }}</small>
-                        {% else %}
-                            <small class="time-element post-time float-right timer">
-                                {% if quiz.ago_time.count == 0 %}
-                                    <span>Just now</span>
-                                {% else %}
-                                    <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}
-                                {% endif %}
-                            </small>
-                        {% endif %}
+                        <small class="time-element post-time float-right timer">
+                            {% if quiz.ago_time.count == 0 %}
+                                <span>Just now</span>
+                            {% else %}
+                                <span>{{ quiz.ago_time.count }}&nbsp;</span>{{ quiz.ago_time.desc }}
+                            {% endif %}
+                        </small>
                     {% else %}
-                        <small class="time-element post-time float-right">{{ quiz.time }}</small>
+                        <small class="time-element post-time float-right">{{ quiz.ago_time }}</small>
                     {% endif %}
                 </p>
                 <p>{{quiz.content}}</p>
@@ -76,7 +72,7 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title answer-heading" id="exampleModalLongTitle">Answers & comments to
+                                <h5 class="modal-title answer-heading" id="exampleModalLongTitle">Answers & comments for
                                     <span>{{ quiz.author.first_name }}</span>'s <span>question/post</span></h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
@@ -88,19 +84,14 @@
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
                                         {% if answer.ago_time.desc %}
-                                            {% if answer.ago_time.desc == 'day ago' %}
-                                                <small class="time-element post-time float-right">Yesterday at {{ answer.time|date:"H:i" }}</small>
+                                            {% if answer.ago_time.count == 0 %}
+                                                <span>Just now</span>
                                             {% else %}
-                                                <small class="time-element post-time float-right timer">
-                                                    {% if answer.ago_time.count == 0 %}
-                                                        <span>Just now</span>
-                                                    {% else %}
-                                                        <span>{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
-                                                    {% endif %}
-                                                </small>
+                                                <span>{{ answer.ago_time.count }}&nbsp;</span>{{ answer.ago_time.desc }}
                                             {% endif %}
+                                            </small>
                                         {% else %}
-                                            <p class="float-right answer-time time-element">{{ answer.time }}</p>
+                                            <p class="float-right answer-time time-element">{{ answer.ago_time }}</p>
                                         {% endif %}
                                         <p class="answer-content ">{{ answer.content }}</p>
                                         <p class="reply-trigger">Reply</p>

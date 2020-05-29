@@ -1,10 +1,7 @@
 
 body{
+    padding: 10px;
     background-color: #ebebf1;
-}
-.row{
-    margin-right: 0;
-    margin-left:0;
 }
 #home_btn{
     box-sizing: unset;
@@ -36,16 +33,16 @@ body{
     position:fixed;
     top:0;
     right:0;
-    width:75%;
+    width:100%;
     height:100%;
 }
 .header{
     position:fixed;
     top:0;
     width:100%;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-size: 25px;
+    /*padding-top: 10px;*/
+    /*padding-bottom: 10px;*/
+    font-size: 20px;
     background-color: #00BFFF;
     color:white;
 }
@@ -69,21 +66,21 @@ body{
 #input-message{
     position: fixed;
     bottom: 5px;
-    width:50%;
+    width:80%;
     height:60px;
 }
 #send{;
     padding: 0;
-    height: 60px;
+    max-height: 40px;
+    max-width: 50px;
     background-color: transparent;
     border:none;
 }
 #message{
-    border-radius: 14px;
+    border-radius: 10px;
     width: 90%;
-    height: 60px;
-    padding:20px 0 10px 5px;
-    max-height: 60px;
+    padding:10px 0 10px 5px;
+    max-height: 50px;
 }
 #pheader{
     line-height:1px;
@@ -180,7 +177,7 @@ body{
 
 #active_user-panel, #add-to-contacts{
     float:left;
-    width: 40%;
+    width: 60%;
 }
 #add-to-contacts{
     text-align: right;

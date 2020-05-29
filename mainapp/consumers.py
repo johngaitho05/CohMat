@@ -1,5 +1,8 @@
 import asyncio
 import json
+
+from asgiref.sync import async_to_sync
+from channels.exceptions import StopConsumer
 from django.contrib.auth import get_user_model
 from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
@@ -97,7 +100,11 @@ class NotificationConsumer(AsyncConsumer):
         })
 
     async def websocket_disconnect(self, event):
-        print("disconnected", event)
+        await self.channel_layer.group_discard(
+            self.room,
+            self.channel_name
+        )
+        raise StopConsumer()
 
     @database_sync_to_async
     def save_answer(self, author, question, answer):

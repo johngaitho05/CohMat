@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load tz %}
+    {% load staticfiles %}
+    <meta charset="UTF-8">
+    <title>SmartChat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" >
+    <link href="https://fonts.googleapis.com/css?family=Lobster+Two" rel="stylesheet">
+    <link rel="stylesheet" href='{% static 'chat/css/sm-chat.css' %}'>
+</head>
+<body>
+<div class="col-sm-12 col-md-12 col-lg-12">
+    <!-- a list of text messages by a friend -->
+    <div class="texts">
+        <div class="header" id="chat-panel-heading" >
+            <div id="active_user-panel"><h3 id="active_user">Chat Panel</h3></div>
+            {% if texts_list and texts_list != 'Null'%}
+                <p id="delete-initiator" onclick="toggle_delete_view()">Delete Texts</p>
+            {% endif %}
+        </div>
+        <div id="texts_section">
+            <script type="text/javascript">
+                document.getElementById('active_user').innerHTML =
+                    '<img src="{{ active_contact.userprofile.profile_photo.url }}" id="activeimg"alt="image" class="dp"/>{{ active_contact.first_name }} {{ active_contact.last_name }}';
+            </script>
+            <a></a>
+            {% if texts_list %}
+                <div id="chatlog">
+                    <button type="button" onclick="delete_texts()" class="btn btn-outline-danger" id="delete-button">
+                        Delete</button>
+                    <form method="post" action="{% url 'chat:delete_texts' %}" id="delete-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="room_name" value="{{ room_name }}"/>
+                        <div id="texts-container">
+                            {% if texts_list and  texts_list != 'Null' %}
+                                {% for date,texts in texts_list %}
+                                    {% if date == today %}
+                                        <p class="text-center date" id="today" >Today</p>
+                                    {%  elif date == yesterday %}
+                                        <p class="text-center date" >Yesterday</p>
+                                    {% else %}
+                                        <p class="text-center date" >{{ date }}</p>
+                                    {% endif %}
+                                    {% for text in texts %}
+                                        {% if text.author == user %}
+                                            <div class="sent">
+                                                <p > {{ text.content }}</p>
+                                                <p class ="time">{{ text.time|date:"H:i" }}</p>
+                                                <input class="delete-sent" type="checkbox" name="to_delete" value="{{ text.id }}"/>
+                                            </div>
+                                        {% else %}
+                                            <div class="replies">
+                                                {% if text.deleted_A and party == 'A' or text.deleted_B and party == 'B' %}
+                                                    <p> This message was deleted</p>
+                                                {% else %}
+                                                    <p> {{ text.content }}</p>
+                                                    <p class ="time">{{ text.time|date:"H:i" }}</p>
+                                                {% endif %}
+                                                <input class="delete-reply" type="checkbox" name="to_delete" value="{{ text.id }}"/>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+                            <div/>
+                    </form>
+                    {#                            {% else %}#}
+                </div>
+                <form  class="form-inline" id="input-message">
+                    <div class="form-group" style="width:100%" id="text_form">
+                        <textarea name="message" id="message" cols="10" rows="5" placeholder="Type a message"></textarea>
+                        <span class="input-group-append">
+                        <button class="btn btn-primary" id="send" >
+                        <img src="{% static 'chat/img/png/caret-right-6x.png' %}"/>
+                        </button>
+                    </span>
+                    </div>
+                </form>
+                </div>
+            {% else %}
+                <div class="row">
+                <div class="col-md-4 offset-md-4 text-center" >
+                    <h4 style="padding-top: 200px;font-family: 'Lobster Two', cursive; ">Welcome to Smart-Chat. <br/> Tap on a contact to start conversation</h4>
+                </div>
+            {% endif %}
+            </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+    <script src="{% static 'chat/js/reconnecting-websocket.js' %}"></script>
+    <script type="text/javascript" src="{% static 'chat/js/chat.js' %}"></script>
+</body>
+</html>

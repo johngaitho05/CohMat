@@ -24,9 +24,12 @@ class ChatConsumer(WebsocketConsumer):
         return result
 
     def message_to_json(self, message):
+        author = self.scope['user']
         return {
             'id': message.pk,
-            'author': message.author.username,
+            'authorUsername': author.username,
+            'reportingName': author.first_name + ' ' + author.last_name,
+            'authorImage': author.userprofile.profile_photo.url,
             'content': message.content,
             'time': str(datetime.strftime(message.time, '%H:%M'))
         }

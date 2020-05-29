@@ -13,6 +13,9 @@ application = ProtocolTypeRouter({
                 [
                     url(r'^messaging/chat/(?P<room_name>\w+)$', ChatConsumer),
                     url(r'', NotificationConsumer),
+                    url(r'notifications/', NotificationConsumer),
+                    url(r'messages/', NotificationConsumer),
+                    url(r'groups/', NotificationConsumer),
                 ]
             )
         )

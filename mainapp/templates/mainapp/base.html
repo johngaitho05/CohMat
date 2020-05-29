@@ -14,7 +14,7 @@
 <body id="body">
 <!--Navigation bar-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-fixed-top">
-    <a class="navbar-brand" href="{% url 'mainapp:homeView' %}"><img class="img-fluid" src="{% static 'images/cohmat_home_logo.PNG' %}"
+    <a class="navbar-brand" href="{% url 'mainapp:homeView' %}"><img class="img-fluid" src="{% static 'mainapp/images/logo.jpg' %}"
                                                                      alt="CohMat"/></a>
     <button class="navbar-toggler pull-right" type="button" data-toggle="collapse" data-target="#navbarItems"
             aria-controls="navbarItems" aria-label="Toggle navigation">
@@ -27,7 +27,7 @@
                     <div class="input-group">
                         <input type="text" class="form-control" id="search" name="search" placeholder="Text to search"/>
                         <div class="input-group-btn">
-                            <button type="button" class="btn btn-default"><i class="fas fa-search"></i></button>
+                            <button type="button" id="search-button" class="btn btn-info"><i class="fas fa-search"></i></button>
                         </div>
                     </div>
                 </form>
@@ -108,7 +108,7 @@
                     <table class=" table-condensed">
                         <thead>
                         <tr>
-                            <th>Person</th>
+                            <th>Name</th>
                             <th>Current Interest</th>
                             <th></th>
                         </tr>

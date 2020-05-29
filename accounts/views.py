@@ -6,9 +6,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
-
-from accounts.forms import LoginForm
-from chat.views import add_chat_rooms
 from .models import *
 from mainapp.models import *
 from django.contrib.auth import login, logout, authenticate
@@ -76,13 +73,7 @@ def register_view(request):
                     create_profile(new_user, study_field, school, groups, profile_photo)
                 except MultiValueDictKeyError:
                     # user did not upload profile picture. Use default profile pic
-                    print('no file found')
                     create_profile(new_user, study_field, school, groups)
-
-                # add channels through which user can chat one-on-one with each member
-                add_chat_rooms(new_user)
-                increment_group_members(groups)
-
                 # send a confirmation link to the user email
                 current_site = get_current_site(request)
                 if send_link_via_mail(current_site, email, request.user):
@@ -236,7 +227,6 @@ def resend_activation_link(request):
                 return JsonResponse(response)
 
             users = User.objects.filter(email=old_email)
-            print(users)
             if users.count() == 1:
                 user = users.first()
                 current_site = get_current_site(request)

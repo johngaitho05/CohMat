@@ -25,6 +25,7 @@ def contacts_view(request):
 @login_required
 def chat(request, room_name):
     active_contact = get_active_contact(request.user.id, room_name)
+    get_chat_room(active_contact.id, request.user.id)
     party = other_user_party(request.user.id, room_name)
     updateRead(room_name, get_active_contact(request.user.id, room_name))
     today = date.today()
@@ -39,7 +40,7 @@ def chat(request, room_name):
         return render(request, 'chat/home.html',
                       {'texts_list': texts_list,
                        'active_contact': active_contact,
-                       'recents': chat_list[::-1],
+                       'recents': chat_list,
                        'room_name': room_name,
                        'room_name_json': room_to_json,
                        'username_json': username_json,
@@ -80,14 +81,14 @@ def contacts_view_extension(user):
     elif count == 1:
         count = '1 Contact'
     else:
-        count = str(count) + 'Contacts'
+        count = str(count) + ' ' + 'Contacts'
     return [contacts, count]
 
 
 # return a list of ids for those users that qualify to be in the user contacts
 def get_contacts(user):
     try:
-        contacts = User.objects.filter(userprofile__study_field=user.userprofile.study_field)
+        contacts = User.objects.filter(userprofile__study_field=user.userprofile.study_field, is_active=True)
     except UserProfile.DoesNotExist:
         print('User does not have a profile')
         raise Http404('Ops! Something went wrong')
@@ -104,30 +105,25 @@ def get_recent_chats(user):
     chat_list = [chat_room for chat_room in recent_rooms]
     for i in range(len(chat_list)):
         chat_room = chat_list[i]
-        contact = get_active_contact(user.id, chat_room.name)
-        if contact:
-            party = other_user_party(user.id, chat_room.name)
-            messages = None
-            if party == 'A':
-                messages = Message.objects.filter(chat_room=chat_room.name, deleted_B=False).order_by('id')
-            elif party == 'B':
-                messages = Message.objects.filter(chat_room=chat_room.name, deleted_A=False).order_by('id')
-            last_text = messages.last() if messages else None
-            unread = Message.objects.filter(chat_room=chat_room.name, author=contact, read=False).count()
-            chat_list[i] = (contact, chat_room, last_text, unread) if messages else None
+        contactId = get_active_contact_id(user.id, chat_room.name)
+        if contactId and contactId != -1:
+            try:
+                contact = User.objects.get(id=contactId)
+                party = other_user_party(user.id, chat_room.name)
+                messages = None
+                if party == 'A':
+                    messages = Message.objects.filter(chat_room=chat_room.name, deleted_B=False).order_by('id')
+                elif party == 'B':
+                    messages = Message.objects.filter(chat_room=chat_room.name, deleted_A=False).order_by('id')
+                last_text = messages.last() if messages else None
+                unread = Message.objects.filter(chat_room=chat_room.name, author=contact, read=False).count()
+                chat_list[i] = (contact, chat_room, last_text, unread) if messages else None
+            except User.DoesNotExist:
+                chat_list[i] = None
         else:
+            print('contactId not found!!!!!!!!!!')
             chat_list[i] = None
     return [recent for recent in chat_list if recent]
-
-
-# called when a new user registers to create chatrooms through which the user can chat with other members
-def add_chat_rooms(current_user):
-    users = User.objects.exclude(current_user)
-    users = [user for user in users if user is not current_user]
-    if users:
-        for user in users:
-            new_room = str(user.id) + 'A' + str(current_user.id)
-            ChatRoom.objects.create(name=new_room)
 
 
 def get_chat_rooms(contacts, user):
@@ -142,14 +138,16 @@ def get_chat_rooms(contacts, user):
 
 
 def get_chat_room(contact_id, user_id):
+    print(contact_id, user_id)
     if contact_id < user_id:
         room_name = str(contact_id) + 'A' + str(user_id)
     else:
         room_name = str(user_id) + 'A' + str(contact_id)
+    print(room_name)
     try:
         room = ChatRoom.objects.get(name=room_name)
     except ChatRoom.DoesNotExist:
-        chat_room_messages = Message.objects.filter(chat_room=room_name).order_by('-time')
+        chat_room_messages = Message.objects.filter(chat_room=room_name).order_by('-id')
         if chat_room_messages:
             messages_list = [message for message in chat_room_messages]
             room = ChatRoom.objects.create(name=room_name, last_message=messages_list[0])
@@ -167,13 +165,15 @@ def get_active_contact(user_id, room_name):
 def get_active_contact_id(user_id, room_name):
     if user_id and room_name:
         id_list = room_name.split('A')
-        if len(id_list) != 2:
+        if len(id_list) != 2 or id_list[0] == id_list[1]:
             return -1
         try:
             id_list = [int(Id) for Id in id_list]
+            if id_list[0] > id_list[1]:
+                return -1
             if id_list[0] == user_id:
                 return id_list[1]
-            elif id_list[1] == user_id:
+            if id_list[1] == user_id:
                 return int(id_list[0])
             return -1
         except ValueError:
@@ -201,11 +201,11 @@ def get_texts(room_name, user):
         message_date = date_set[i]
         texts = [message for message in messages if message.time.date() ==
                  message_date and not message_is_deleted(message, party)]
-
-        texts_list[i] = (message_date, texts) if texts else None
-        for j in range(len(texts_list)):
-            if texts_list[j] is None:
-                texts_list.pop(j)
+        if texts:
+            texts_list[i] = (message_date, texts)
+    for j in range(len(texts_list)):
+        if texts_list[j] is None:
+            texts_list.pop(j)
     return texts_list
 
 

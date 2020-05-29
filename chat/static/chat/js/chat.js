@@ -56,6 +56,59 @@ function toggle_delete_view(){
     }
 }
 
+function HandleMessage(data, username, activeContactId){
+    // console.log(data, username, active_contact)
+    let message = data['message'];
+    let author = message['authorUsername'];
+    let last_text = data['last_text'];
+    let content;
+    if(author === username){
+        content = `<div class="sent">
+                                    <p> ${message.content}</p>
+                                    <p class ="time">${message.time}</p>
+                                    <input class="delete-sent" type="checkbox" name="to_delete" value="${message.id}"/>
+                                </div>`
+    }else{
+        content = `<div class="replies">
+                                        <p> ${message.content}</p>
+                                        <p class ="time">${message.time}</p>
+                                        <input class="delete-reply" type="checkbox" name="to_delete" value="${message.id}"/>
+                                    </div>`;
+        markAsRead(message['id']);
+    }
+    let today = $('#today');
+    let container = $('#texts-container')
+    if (! today.length){
+        container.prepend('<p class="text-center date" >Today</p>');
+    }
+    container.append(content);
+    let container2 = $('#recents-container');
+    if(container2.length){
+        let helper = $('#recents-helper');
+        if (helper.length) {
+            helper.remove();
+            let new_recent = `<a href="javascript:{window.location.pathname = '/messaging/chat/${roomName}';}" id="chat_init">
+                            <div class="card contact">
+                                <div class="image" style="float:left; height:100%">
+                                    <img src="${message['authorImage']}" alt="image" class="dp"/>
+                                    <h4>${message['reportingName']}</h4>
+                                    <br />
+                                        <small class="last-text" id="${activeContactId}">${last_text}</small>
+                                </div>
+                            </div>
+                        </a>`;
+            let button = '<p id="delete-initiator" onclick="toggle_delete_view()">Delete Texts</p>';
+            container2.append(new_recent);
+            $('#chat-panel-heading').append(button);
+        }
+        else
+        {
+            let active_contact = $('#'+activeContactId);
+            active_contact.text(last_text);
+        }
+    }
+}
+
 function markAsRead(id){
     $.ajax({
         method: "POST",

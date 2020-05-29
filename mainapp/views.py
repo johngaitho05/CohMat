@@ -62,7 +62,8 @@ class GroupsView(ListView):
         context = super(GroupsView, self).get_context_data(**kwargs)
         context.update({
             'active_link': 'groups_link',
-            'contacts': data['contacts']
+            'contacts': data['contacts'],
+            'user_cohorts': data['user_cohorts'],
         })
         return context
 
@@ -74,11 +75,13 @@ class GroupsView(ListView):
 @login_required
 def messagesView(request):
     data = get_user_data(request.user)
-    messages = get_recent_chats(request.user)[::-1]
+    messages = get_recent_chats(request.user)
     return render(request, 'mainapp/messages.html',
                   {'active_link': 'messages_link',
                    'messages': messages,
-                   'contacts': data['contacts']})
+                   'contacts': data['contacts'],
+                   'user_cohorts': data['user_cohorts'],
+                   })
 
 
 @method_decorator(login_required, name='dispatch')
@@ -96,7 +99,8 @@ class NotificationsView(ListView):
         context = super(NotificationsView, self).get_context_data(**kwargs)
         context.update({
             'active_link': 'notifications_link',
-            'contacts': data['contacts']
+            'contacts': data['contacts'],
+            'user_cohorts': data['user_cohorts'],
         })
         return context
 

@@ -1,38 +1,32 @@
 {% extends 'mainapp/base.html' %}
 {% block title %}
     <title>Groups</title>
-    {% endblock %}
+{% endblock %}
 {% load static %}
 {% block body %}
 
     <div class="col-md-7 section-container">
         <h2 id='page-heading'>Groups</h2>
         {% for cohort in cohorts_list %}
-        <div class="row group-item">
-            <div class="col-md-4">
-                <img class="img-fluid cohort-logo" src="{{cohort.logo.url}}" alt="Group logo" />
+            <div class="row group-item">
+                <div class="col-md-4">
+                    <img class="img-fluid cohort-logo" src="{{cohort.logo.url}}" alt="Group logo" />
+                </div>
+                <div class="col-md-6">
+                    <h3>{{cohort.title}}</h3>
+                    <p>
+                        {{cohort.description}}
+                    </p>
+                </div>
+                <div class="col-md-2 text-center">
+                    <form method="post" action="{% url 'mainapp:join' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="page" value="groups"/>
+                        <input type="hidden" name="to_join" value="{{cohort.id}}"/>
+                        <input type="submit" class="btn btn-success" id="join-btn" value="Join"/>
+                    </form>
+                </div>
             </div>
-            <div class="col-md-6">
-                <h3>{{cohort.title}}</h3>
-                <p>
-                    {{cohort.description}}
-                </p>
-            </div>
-            <div class="col-md-2 text-center">
-                <form method="post" action="{% url 'mainapp:join' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="page" value="groups"/>
-                    <input type="hidden" name="to_join" value="{{cohort.id}}"/>
-                    <input type="submit" class="btn btn-success" id="join-btn" value="Join"/>
-                </form>
-            </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
     </div>
-    <script>
-        $(document).ready(function() {
-            document.getElementById("groups_link").classList.add('active');
-        });
-    </script>
-
 {% endblock %}

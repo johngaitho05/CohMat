@@ -60,67 +60,61 @@
                     document.getElementById('contact-header').innerHTML = '{{ message }}';
                 </script>
             {% elif recents %}
-                {% if recents != 'Null' %}
-                    {% for contact, room, last_text, unread in recents %}
-                        <a href="javascript:{window.location.pathname = '/messaging/chat/{{room.name}}';}" id="chat_init">
-                            <div class="card contact">
-                                <div class="image" style="float:left; height:100%">
-                                    <img src="{{ contact.userprofile.profile_photo.url }}" alt="image" class="dp"/>
-                                    <h4>{{ contact.first_name }} {{ contact.last_name }}</h4>
-                                    <br />
-                                    {% if last_text.deleted_A and party == 'A' or last_text.deleted_B and party == 'B' %}
-                                        <small class="last-text" id="{{ contact.id }}">This message was deleted</small>
-                                    {% else %}
-                                        <small class="last-text" id="{{ contact.id }}">{{ last_text.sliced_text }}</small>
-                                    {% endif %}
+                <div id="recents-container">
+                    {% if recents != 'Null' %}
+                        {% for contact, room, last_text, unread in recents %}
+                            <a href="javascript:{window.location.pathname = '/messaging/chat/{{room.name}}';}" id="chat_init">
+                                <div class="card contact">
+                                    <div class="image" style="float:left; height:100%">
+                                        <img src="{{ contact.userprofile.profile_photo.url }}" alt="image" class="dp"/>
+                                        <h4>{{ contact.first_name }} {{ contact.last_name }}</h4>
+                                        <br />
+                                        {% if last_text.deleted_A and party == 'A' or last_text.deleted_B and party == 'B' %}
+                                            <small class="last-text" id="{{ contact.id }}">This message was deleted</small>
+                                        {% else %}
+                                            <small class="last-text" id="{{ contact.id }}">{{ last_text.sliced_text }}</small>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    {% endfor %}
-                {% else %}
-                    <p style="padding-top: 50px;">Your recent chats will appear here. It seems that you currently have none</p>
-                {% endif %}
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <p id="recents-helper" style="padding-top: 50px;">Your recent chats will appear here. It seems that you currently have none</p>
+                    {% endif %}
+                </div>
             {% endif %}
             </div>
         </div>
         <div class="col-md-8 col-xs-12 md-offset-1 d-none d-sm-block">
             <!-- a list of text messages by a friend -->
             <div class="texts">
-                <div class="header" >
-                    <div id="active_user-panel"><h3 id="active_user">Chat Panel</h3></div>
+                <div class="header" id="chat-panel-heading" >
+                    <div id="active_user-panel">
+                        <h3 id="active_user" class="text-center">
+                            {% if active_contact %}
+                                <img src="{{ active_contact.userprofile.profile_photo.url }}" id="activeimg"
+                                     alt="image" class="dp"/>{{ active_contact.first_name }} {{ active_contact.last_name }}
+                                {% else %}
+                                Chat Panel
+                            {% endif %}
+                        </h3></div>
                     {% if texts_list and texts_list != 'Null'%}
                         <p id="delete-initiator" onclick="toggle_delete_view()">Delete Texts</p>
                     {% endif %}
                 </div>
                 <div id="texts_section">
-                    {% if texts_list  %}
-                        <script type="text/javascript">
-                            document.getElementById('active_user').innerHTML =
-                                '<img src="{{ active_contact.userprofile.profile_photo.url }}" id="activeimg"alt="image" class="dp"/>{{ active_contact.first_name }} {{ active_contact.last_name }}';
-                        </script>
-                        <a></a>
-                        {% if texts_list == 'Null' %}
-                            <form  class="form-inline" id="input-message">
-                                <div class="form-group" style="width:100%" id="text_form">
-                                    <textarea name="message" id="message" cols="30" rows="10" placeholder="Type a message"></textarea>
-                                    <span class="input-group-append">
-                        <button class="btn btn-primary" id="send" >
-                        <img src="{% static 'chat/img/png/caret-right-6x.png' %}"/>
-                        </button>
-                    </span>
-                                </div >
-                            </form>
-                        {% else %}
-                            <div id="chatlog">
-                                <button type="button" onclick="delete_texts()" class="btn btn-outline-danger" id="delete-button">
-                                    Delete</button>
-                                <form method="post" action="{% url 'chat:delete_texts' %}" id="delete-form">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="room_name" value="{{ room_name }}"/>
-                                    {% if texts_list %}
+                    {% if texts_list %}
+                        <div id="chatlog">
+                            <button type="button" onclick="delete_texts()" class="btn btn-outline-danger" id="delete-button">
+                                Delete</button>
+                            <form method="post" action="{% url 'chat:delete_texts' %}" id="delete-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="room_name" value="{{ room_name }}"/>
+                                <div id="texts-container">
+                                    {% if texts_list and  texts_list != 'Null' %}
                                         {% for date,texts in texts_list %}
                                             {% if date == today %}
-                                                <p class="text-center date" >Today</p>
+                                                <p class="text-center date" id="today" >Today</p>
                                             {%  elif date == yesterday %}
                                                 <p class="text-center date" >Yesterday</p>
                                             {% else %}
@@ -147,19 +141,19 @@
                                             {% endfor %}
                                         {% endfor %}
                                     {% endif %}
-                                </form>
-                            </div>
-                            <form  class="form-inline" id="input-message">
-                                <div class="form-group" style="width:100%" id="text_form">
-                                    <textarea name="message" id="message" cols="30" rows="10" placeholder="Type a message"></textarea>
-                                    <span class="input-group-append">
+                                    <div/>
+                            </form>
+                            {#                            {% else %}#}
+                        </div>
+                        <form  class="form-inline" id="input-message">
+                            <div class="form-group" style="width:100%" id="text_form">
+                                <textarea name="message" id="message" cols="30" rows="10" placeholder="Type a message"></textarea>
+                                <span class="input-group-append">
                         <button class="btn btn-primary" id="send" >
                         <img src="{% static 'chat/img/png/caret-right-6x.png' %}"/>
                         </button>
                     </span>
-                                </div >
-                            </form>
-                        {% endif %}
+                        </form>
 
                         </div>
                         </div>
@@ -190,28 +184,7 @@
             let notifySocket = new ReconnectingWebSocket(endpoint2);
             chatSocket.onmessage = function(e) {
                 let data = JSON.parse(e.data);
-                console.log(data);
-                let message = data['message'];
-                let author = message['author'];
-                let last_text = data['last_text'];
-                let content = '';
-                if(author === username){
-                    content = `<div class="sent">
-                                    <p> ${message.content}</p>
-                                    <p class ="time">${message.time}</p>
-                                    <input class="delete-sent" type="checkbox" name="to_delete" value="${message.id}"/>
-                                </div>`
-                }else{
-                    content = `<div class="replies">
-                                        <p> ${message.content}</p>
-                                        <p class ="time">${message.time}</p>
-                                        <input class="delete-reply" type="checkbox" name="to_delete" value="${message.id}"/>
-                                    </div>`
-                 markAsRead(message.id);
-                }
-                $('#chatlog').append(content);
-                let active_contact = $('#{{ active_contact.id }}');
-                active_contact.text(last_text);
+                HandleMessage(data, username, {{ active_contact.id }})
             };
             chatSocket.onclose = function() {
                 console.error('Chat socket closed unexpectedly');

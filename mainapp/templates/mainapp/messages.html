@@ -22,7 +22,7 @@
                             {% endif %}
                         </p>
                     {% else %}
-                        <p class="message-time float-right timer">{{ last_text.time }}</p>
+                        <p class="message-time float-right timer">{{ last_text.ago_time }}</p>
                     {% endif %}
                     <p href="#" class="last-text">{{ last_text.sliced_text }}
                         {% if unread %}
