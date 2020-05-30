@@ -1,0 +1,86 @@
+#cohorts-pagination{
+    max-width: 80%;
+    position: relative;
+}
+.media{
+    padding: 0;
+}
+
+.cohort-item{
+    margin: auto auto 20px;
+    border:1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: inset 0 0 14px 8px rgba(0, 0, 0, 0.12);
+    transition: all .5s ease;
+    color: rgba(30, 31, 29, 0.84);
+    border-radius: 3px;
+    max-width: 300px;
+    font-weight: 600;
+    padding-bottom: 10px;
+}
+.group-logo{
+ cursor: pointer;
+}
+.cohort-item svg{
+    color: #32CD32;
+    font-size: 17px;
+}
+.exit-group-button, .exit-group-button:hover{
+    color:#FF6347;
+    float: right;
+}
+
+.cohort-item img{
+    height: 200px;
+}
+.cohort-item h4{
+    color:black
+}
+.bottom-card-info{
+    margin-left: 10px;
+    padding: 10px;
+}
+.group-info{
+    padding: 10px;
+    margin-bottom: 0;
+}
+.group-info p{
+    margin-bottom: 0;
+}
+
+.sub-column{
+    padding:0;
+    text-align: center;
+}
+.group_data{
+    color: #2048ff;
+    font-size: 13px;
+}
+
+.pager li{
+    display: inline;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 10px;
+    padding: 8px;
+
+}
+.pager li a {
+    text-decoration: none !important;
+
+}
+.pager li a:hover{
+    color: lightblue
+}
+.pager li:first-of-type{
+    margin-right: 40%;
+}
+
+#login-button{
+    position: absolute;
+    top: 20px;
+    left:30px;
+    color: #006df3;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-family:  Monaco, "Courier New", Courier, monospace;
+    font-weight: 600;
+}

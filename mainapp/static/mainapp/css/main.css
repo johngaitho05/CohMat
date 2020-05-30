@@ -218,8 +218,8 @@ input:focus, textarea:focus{
     display: inline;
 }
 .messaging_link{
-    font-size:13px;
-    color: #6667ff;
+    font-size:20px;
+    color: #2675ff;
     font-weight: 700;
 }
 
@@ -393,8 +393,10 @@ table{
     margin-left: 40px;
     margin-top:5px ;
 }
-.answer-time{
+.time-element{
     font-family:  Monaco, "Courier New", Courier, monospace;
+}
+.answer-time{
     font-size: 12px;
     margin-bottom: 0;
 }

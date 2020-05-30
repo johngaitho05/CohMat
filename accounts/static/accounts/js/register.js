@@ -4,47 +4,55 @@ let animating; //flag to prevent quick multi-click glitches
 
 $(".next").click(function(){
     if(animating) return false;
-    animating = true;
-
+    // define current and next slides
     current_fs = $(this).parent().parent();
     next_fs = $(this).parent().parent().next();
 
-    //activate next step on progressbar using the index of next_fs
-    $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+    // prevent loading of the next slide if there are blank fields in the current slide
+    let field = $('#study_field').val();
+    if (missingFields(current_fs)){
+        show_alert('Please fill in all the required fields')
+    }else{
+        animating = true;
+        //activate next step on progressbar using the index of next_fs
+        $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
 
-    //show the next fieldset
-    next_fs.show();
-    if (next_fs.hasClass("cohort_list")){
-        let mydiv = document.getElementById("page_wrapper");
-        mydiv.classList.add('col-lg-12');
-        mydiv.classList.remove('offset-md-2');
-        mydiv.classList.remove('col-md-8');
-        display_cohorts_for_first_time(); // display groups that the user can join
+        if (next_fs.hasClass("cohort_list")) {
+            let mydiv = $("#page_wrapper");
+            mydiv.removeClass('col-md-6');
+            mydiv.removeClass('offset-md-3');
+            mydiv.addClass('col-md-10');
+            mydiv.addClass('offset-md-1');
+            display_cohorts_for_first_time(field); // display groups that the user can join
+        }
+        //show the next fieldset
+        next_fs.show();
+
+        //	hide the current fieldset with style
+        current_fs.animate({opacity: 0}, {
+            step: function(now, mx) {
+                //as the opacity of current_fs reduces to 0 - stored in "now"
+                //1. scale current_fs down to 80%
+                scale = 1 - (1 - now) * 0.2;
+                //2. bring next_fs from the right(50%)
+                left = (now * 50)+"%";
+                //3. increase opacity of next_fs to 1 as it moves in
+                opacity = 1 - now;
+                current_fs.css({
+                    'transform': 'scale('+scale+')',
+                    'position': 'absolute'
+                });
+                next_fs.css({'left': left, 'opacity': opacity});
+            },
+            duration: 800,
+            complete: function(){
+                current_fs.hide();
+                animating = false;
+            },
+            //this comes from the custom easing plugin
+            easing: 'easeInOutBack'
+        });
     }
-    //	hide the current fieldset with style
-    current_fs.animate({opacity: 0}, {
-        step: function(now, mx) {
-            //as the opacity of current_fs reduces to 0 - stored in "now"
-            //1. scale current_fs down to 80%
-            scale = 1 - (1 - now) * 0.2;
-            //2. bring next_fs from the right(50%)
-            left = (now * 50)+"%";
-            //3. increase opacity of next_fs to 1 as it moves in
-            opacity = 1 - now;
-            current_fs.css({
-                'transform': 'scale('+scale+')',
-                'position': 'absolute'
-            });
-            next_fs.css({'left': left, 'opacity': opacity});
-        },
-        duration: 800,
-        complete: function(){
-            current_fs.hide();
-            animating = false;
-        },
-        //this comes from the custom easing plugin
-        easing: 'easeInOutBack'
-    });
 });
 
 $(".previous").click(function(){
@@ -58,10 +66,11 @@ $(".previous").click(function(){
     $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
 
     //show the previous fieldset
-    var mydiv = document.getElementById("page_wrapper");
-    mydiv.classList.remove('col-lg-12');
-    mydiv.classList.add('offset-md-2');
-    mydiv.classList.add('col-md-8');
+    let mydiv = $("#page_wrapper");
+    mydiv.removeClass('col-md-10');
+    mydiv.removeClass('offset-md-1');
+    mydiv.addClass('offset-md-3');
+    mydiv.addClass('col-md-6');
     previous_fs.show();
     //hide the current fieldset with style
     current_fs.animate({opacity: 0}, {
@@ -86,14 +95,9 @@ $(".previous").click(function(){
     });
 });
 
-$(".submit").click(function(){
-    return false;
-});
-
-
 function readURL(input) {
     if (input.files && input.files[0]) {
-        var reader = new FileReader();
+        const reader = new FileReader();
         reader.onload = function(e) {
             $('#imagePreview').css('background-image', 'url('+e.target.result +')');
             $('#imagePreview').hide();
@@ -105,6 +109,20 @@ function readURL(input) {
 $("#profile_photo").change(function() {
     readURL(this);
 });
+
+/**
+ * @return {boolean}
+ */
+function missingFields(container){
+    let missing = false;
+    container.find('input[type=text],input[type=password],select').each(function() {
+        if (!$(this).val()){
+            missing = true;
+            return false
+        }
+    });
+    return missing
+}
 
 function selectCard(id) {
     let cohort = document.getElementById(id);
@@ -137,11 +155,11 @@ function selectCard(id) {
     }
 }
 
-function display_cohorts_for_first_time(){
+function display_cohorts_for_first_time(studyField){
     $.ajax({
         method: "POST",
         url: "to_join",
-        data: {'coh_id':document.getElementById('study_field').value},
+        data: {'coh_id':studyField},
         success: function(data) {
 
             let loader_left = document.getElementById('load_previous');
@@ -282,7 +300,6 @@ function style_previously_selected_cards(data){
 
 function submitRegForm(){
     let form = document.querySelector('#msform');
-    console.log(form);
     let formData = new FormData(form);
     $.ajax({
         url: "",
@@ -306,33 +323,12 @@ function submitRegForm(){
     });
 }
 
-const show_alert = (message, alert_code=1) => {
-    let alert_class = get_alert_class(alert_code);
-    let container = document.getElementById('alert-container');
-    let content = `
-    <div class="alert ${alert_class} text-center alert-dismissible fade show" id="home-alert" role="alert">
-    <p id="home-alert-text">${message}</p>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-    `;
+const show_alert = (message) => {
+    let element = $('#alert-message');
+    element.text(message);
+    $('#alert-modal').modal('show');
 
-    container.innerHTML += content;
-    setTimeout(function(){
-        $(".alert").alert('close');
-    },7000);
 };
-
-
-function get_alert_class(alert_code) {
-    if (alert_code === 0){
-        return "alert-success";
-    }else{
-        return "alert-danger";
-    }
-
-}
 
 function showResendForm(){
     let form = $('#resend-link-form');
@@ -360,7 +356,6 @@ function resendLink() {
                     $('#old-email').val(new_email)
             }
         });
-
     }else{
         show_alert("The email field cannot not be empty")
     }

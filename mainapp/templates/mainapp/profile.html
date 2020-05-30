@@ -23,9 +23,6 @@
                     {% for cohort in cohorts %}
                         <li>
                             <a href="#">{{ cohort }}</a>
-                            {% if userprofile.user == user %}
-                                <button class="btn btn-warning exit-button">Exit</button>
-                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
@@ -37,7 +34,7 @@
                             <option value="{{  userprofile.current_interest.id }}">{{ userprofile.current_interest }}</option>
                             {% for cohort in cohorts %}
                                 {% if cohort != userprofile.current_interest %}
-                                <option value="{{ cohort.id }}">{{ cohort }}</option>
+                                    <option value="{{ cohort.id }}">{{ cohort }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
@@ -53,7 +50,9 @@
                     <button class="btn btn-success float-right" onclick="allow_profile_editing()">
                         <i class="fas fa-pen-square"></i>Edit</button>
                     <br/>
-                    <form >
+                    <form id="update-profile-form" method="post" action="{% url 'mainapp:profile_update' %}">
+                        {% csrf_token %}
+                        <input type="hidden" id="new-interest" name="new-interest" value="{{ userprofile.current_interest.id }}">
                         <input class="form-control" type="text" id="email" name="email"
                                value="{{ user.email }}" readonly/><br/>
                         <label class="control-label" for="first_name" >First Name</label>
@@ -63,11 +62,11 @@
                         <input class="form-control" type="text" id="last_name" name="last_name"
                                value="{{ user.last_name }}" readonly/><br/>
                         <label class="control-label" for="username" >Username</label>
-                        <input class="form-control" type="text" id="username" name="username"
-                               value="{{ user.username }}" readonly/><br/>
-                        <label class="control-label" for="email">Email</label>
+                        <input class="form-control" type="text" id="username"
+                               name="username" value="{{ user.username }}" readonly/>
+                        <br/>
+                        <input class="btn btn-info" id="profile-update-button" type="submit" value="Update"/>
                     </form>
-                    <button class="btn btn-info" id="profile-update-button" onclick="update_profile()">Submit</button>
                 {% else %}
                     <h5>Contact info</h5>
                     <p><b>Email:</b> {{ userprofile.user.email }}</p>

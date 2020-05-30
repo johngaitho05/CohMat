@@ -84,6 +84,7 @@
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>
                                         {% if answer.ago_time.desc %}
+                                            <small class="float-right answer-time time-element timer">
                                             {% if answer.ago_time.count == 0 %}
                                                 <span>Just now</span>
                                             {% else %}
@@ -91,7 +92,7 @@
                                             {% endif %}
                                             </small>
                                         {% else %}
-                                            <p class="float-right answer-time time-element">{{ answer.ago_time }}</p>
+                                            <p class="float-right answer-time time-element timer">{{ answer.ago_time }}</p>
                                         {% endif %}
                                         <p class="answer-content ">{{ answer.content }}</p>
                                         <p class="reply-trigger">Reply</p>

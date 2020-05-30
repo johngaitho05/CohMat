@@ -1,8 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
+import os
 from django.db import models
 from django.contrib.auth import get_user_model
-import os
-import json
 from projectdir import settings
 from mainapp.models import Cohort
 
@@ -14,8 +13,8 @@ class UserProfile(models.Model):
     profile_photo = models.FileField(upload_to='profile_photos',
                                      default=os.path.join(settings.MEDIA_ROOT,
                                                           'profile_photos/default_profile_pic.png'), )
-    study_field = models.ForeignKey(Cohort, on_delete=models.DO_NOTHING)
-    user_groups = ArrayField(models.IntegerField(), null=True, blank=True)
+    study_field = models.ForeignKey(Cohort, on_delete=models.DO_NOTHING, related_name='study_field')
+    user_cohorts = models.ManyToManyField(Cohort, related_name='user_cohorts')
     current_interest = models.ForeignKey(Cohort, on_delete=models.DO_NOTHING, null=True,
                                          related_name='user_current_interest')
     school = models.CharField(max_length=250)

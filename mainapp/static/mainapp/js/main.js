@@ -111,35 +111,26 @@ function allow_profile_editing(){
 }
 
 // Submitting the edited profile details using ajax
-function update_profile(){
-    let current_interest = document.getElementById('interest-input').value;
-    let first_name = document.getElementById('first_name').value;
-    let last_name = document.getElementById('last_name').value;
-    let username = document.getElementById('username').value;
-    let email = document.getElementById('email').value;
+$('#update-profile-form').submit(function(e){
+    e.preventDefault();
+    let form = document.getElementById('update-profile-form');
+    let updatedData = new FormData(form);
+    $.ajax({
+        method: "POST",
+        url: "update",
+        data: updatedData,
+        success: function(data) {
+            let message = data['message'];
+            let code = data['code'];
+            show_alert(message, code)
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
+});
 
-    if (first_name && last_name && username && email){
-        $.ajax({
-            method: "POST",
-            url: "update",
-            data: {
-                'first_name':first_name,
-                'last_name':last_name,
-                'username':username,
-                'email':email,
-                'current_interest':current_interest,
-            },
-            success: function(data) {
-                let message = data['message'];
-                let code = data['code'];
-                show_alert(message, code)
-            }
-        });
-    }else{
-        show_alert("Failed! Please ensure that all fields contain valid values")
-    }
 
-}
 
 // Show alert based on the message received from the server after ajax form submission
 function show_alert(message, alert_code=1,delay=5000){

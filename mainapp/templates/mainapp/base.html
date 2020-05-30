@@ -10,12 +10,15 @@
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans|Patua+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bentham&family=Lobster&family=Marmelad&family=Rancho&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'mainapp/css/main.css' %}"/>
+    {% block css %}
+    {% endblock %}
 </head>
 <body id="body">
 <!--Navigation bar-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-fixed-top">
-    <a class="navbar-brand" href="{% url 'mainapp:homeView' %}"><img class="img-fluid" src="{% static 'mainapp/images/logo.jpg' %}"
-                                                                     alt="CohMat"/></a>
+    <a class="navbar-brand" href="{% url 'mainapp:homeView' %}">
+        <img class="img-fluid" src="{% static 'mainapp/images/logo.jpg' %}" alt="CohMat"/>
+    </a>
     <button class="navbar-toggler pull-right" type="button" data-toggle="collapse" data-target="#navbarItems"
             aria-controls="navbarItems" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -79,7 +82,7 @@
 <div id="mySidenav" class="sidenav" data-backdrop=''>
     <a href="#" class="closebtn" onclick="closeNav()">&times;</a>
     <a href="{% url 'mainapp:profile_view' user.userprofile.id %}">View profile</a>
-    <a href="#">Manage my groups</a>
+    <a href="{% url 'mainapp:userGroupsView' user.id %}">Manage my groups</a>
     <a href="#">Change Password</a>
     <a href="#">Switch Account</a>
     <a href="javascript:{document.getElementById('logout_form').submit();}" id="logout">Sign Out</a>
@@ -110,7 +113,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Current Interest</th>
-                            <th></th>
+                            <th>Open chat</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -123,7 +126,7 @@
                                     </a>
                                 </td>
                                 <td>{{user.userprofile.current_interest}}</td>
-                                <td><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
+                                <td class="text-center"><a href="{% url 'chat:chat' chatroom %}" class="messaging_link"><i class="fab fa-facebook-messenger"></i></a></td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -186,6 +189,10 @@
             if(event.which === 13)
                 $(this).submit();
         });
+        $("#interest-input").change(function(){
+            let newInterest = $(this).children("option:selected").val();
+            $('#new-interest').val(newInterest);
+        });
     });
     $body = $("body");
 
@@ -215,15 +222,19 @@
         $('.answer-form').submit(function(event){
             event.preventDefault();
             let ans = $(this).find('textarea[name=answer]').val();
-            let quizId = $(this).find('input[name=question]').val()
-            let data = {
-                'command':'new_answer',
-                'questionId': quizId,
-                'answer':ans
-            };
-            console.log(data);
-            socket.send(JSON.stringify(data));
-            $(this)[0].reset();
+            let quizId = $(this).find('input[name=question]').val();
+            if (ans.replace(/^\s+|\s+$/g, "").length === 0 || ans===""){
+                show_alert('Answer cannot be blank',1,2000)
+            }else{
+                let data = {
+                    'command':'new_answer',
+                    'questionId': quizId,
+                    'answer':ans
+                };
+                console.log(data);
+                socket.send(JSON.stringify(data));
+                $(this)[0].reset();
+            }
         })
     };
     socket.onerror= function(e){

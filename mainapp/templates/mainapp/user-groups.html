@@ -1,0 +1,53 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'mainapp/css/user-groups.css' %}" >
+{% endblock %}
+
+{% block body %}
+    {% if user_cohorts %}
+        <div class="col-lg-12">
+            <h3 class="column-title">Groups You have joined</h3>
+        </div>
+        {% for cohort in user_cohorts %}
+            <div class="col-md-3 col-sm-6 col-xs-12 card-holder">
+                <div class="card cohort-item" id="{{ cohort.id }}">
+                    <img src="{{ cohort.logo.url }}" alt="Group logo" class="group-logo"/>
+                    <div class="group-info">
+                        <h4>{{ cohort.title }}</h4>
+                        <div class="row">
+                            <div class="col-sm-6 sub-column">
+                                <p><i class="fas fa-calendar"></i><span> Date Created</span><br/>
+                                    <span class="group_data">{{ cohort.date_created }}</span></p>
+                            </div>
+                            <div class="col-sm-6 sub-column">
+                                <p><i class="fas fa-users"></i><span> Members</span><br/>
+                                    <span class="group_data">{{ cohort.number_of_members }}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 text-center">
+                            <p><i class="far fa-address-book"></i><span> Total posts</span>
+                                <br/><span class="group_data">{{ cohort.total_posts }}</span></p>
+                        </div>
+                        <div class="col-lg-12">
+                            <form class="form-inline" action="{% url 'mainapp:exitGroupView' %}" method="post" id="exit-group-form-{{ cohort.id }}" style="display: inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="cohort_id" value="{{cohort.id}}"/>
+                            </form>
+                            <a href="#" class="group-info-button">Group info</a>
+                            {% if cohort.get_level != 0 %}
+                            <a href="javascript:{document.getElementById('exit-group-form-{{ cohort.id }}').submit()}"  class="exit-group-button">Exit Group</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <h3>You have not joined any group</h3>
+    {% endif %}
+{% endblock %}
+{% block quick_messaging %}
+{% endblock %}

@@ -8,26 +8,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans|Patua+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Laila:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'accounts/css/register.css' %}" >
 
 </head>
 <body>
+<h2 id="logo" class="d-none d-md-block">CohMat</h2>
+<a id="login-button" class="column d-none d-md-block"  href="{% url 'accounts:login' %}">Login</a>
 <div class="row">
-    <a id="login-button"  href="{% url 'accounts:login' %}">Login</a>
-    <div class="col-md-8 offset-md-2" id="page_wrapper">
+    <div class="col-xs-12 d-block d-sm-none">
+        <h2 id="logo-sm">CohMat</h2>
+        <a id="login-button-sm" class="float-rigth"  href="{% url 'accounts:login' %}">Login</a>
+    </div>
+    <div class="col-md-6 offset-md-3" id="page_wrapper">
         <form id="msform" action="{% url 'accounts:register' %}" class="msform" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <ul id="progressbar">
                 <li class="active">Account Setup</li>
-                <li>Personal Details</li>
+                <li>Build profile</li>
                 <li>Find Your Community</li>
             </ul>
             <h3 id="banner">{{ error_message }}</h3>
             <!--fieldsets-->
             <fieldset>
                 <div class="fieldset-title">
-                    <h2 class="fs-title fieldset-header">Create your account</h2>
-                    <h3 class="fs-subtitle fieldset-subheader">This is step 1</h3>
+                    <h2 class="fs-title fieldset-header">Create Account</h2>
+                    <h3 class="fs-subtitle fieldset-subheader">Basic Account Details</h3>
                 </div>
                 <label for="email">Email</label>
                 <input type="text" name="email" id="email" placeholder="Type in your School Email"/>
@@ -65,15 +71,18 @@
                         <label for="last_name">Last Name</label>
                         <input type="text" name="last_name" id="last_name" placeholder="Last Name"/>
                     </div>
-                    <div class="col-lg-12">
-                        <label id="study_field_label" for="study_field">Select your field of study</label>
+                    <div class="col-sm-6">
+                        <label id="study_field_label" for="study_field">Study Field</label>
                         <select name="study_field" id="study_field">
+                            <option value="">Select</option>
                             {% for field in study_fields %}
                                 <option value="{{ field.id }}">{{field.title}}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="col-sm-6">
                         <label for="school">School</label>
-                        <input type="text" name="school" id="school" placeholder="Types the name of your school"/>
+                        <input type="text" name="school" id="school" placeholder="Your school name"/>
                     </div>
                 </div>
                 <div class="fieldset-footer">
@@ -83,7 +92,6 @@
             </fieldset>
             <fieldset class="cohort_list">
                 <div class="cohort-loaders">
-                    <div id="alert-container"></div>
                     <p><input type="hidden" id="left-count" value=""/>
                         <i class="fas fa-caret-left" id="load_previous" onclick="load_cohorts('left')">
                         </i>
@@ -94,11 +102,11 @@
                 </div>
                 <div class="fieldset-title">
                     <h2 class="fs-title fieldset-header">Find your community</h2>
-                    <h3 class="fs-subtitle fieldset-subheader">Select at least one cohort that you'd like to join</h3>
+                    <h3 class="fs-subtitle fieldset-subheader">Select the groups you'd like to join (Optional)</h3>
                 </div>
                 <br />
                 <div class="row" id="to_join_container">
-                    {#                    cohorts goes here#}
+                    <!-- cohorts goes here -->
                 </div>
                 <input type="hidden" id="selected_cohorts" value="" name="cohorts"/>
                 <br />
@@ -113,6 +121,18 @@
         {% csrf_token %}
         <input type="hidden" id="user-email" name="email"/>
     </form>
+    <div class="modal" id="alert-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <p id="alert-message"></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <div class="modal loader"></div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>

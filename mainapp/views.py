@@ -15,9 +15,7 @@ from chat.views import get_contacts, get_chat_rooms, get_chat_room
 from chat.views import get_recent_chats, other_user_party
 from .models import Cohort, Question, Notification, Answer, Reply
 from accounts.models import UserProfile
-from data_structures.Searching.Searching import binary_search
 from data_structures.LinkedLists.SingleLinkedList import SingleLinkedList
-from accounts.views import increment_group_members
 
 
 @method_decorator(login_required,
@@ -53,7 +51,7 @@ class HomeView(ListView):
 
 @method_decorator(login_required, name='dispatch')
 class GroupsView(ListView):
-    template_name = 'mainapp/groups.html'
+    template_name = 'mainapp/all-groups.html'
     context_object_name = 'cohorts_list'
     model = Cohort
 
@@ -68,12 +66,12 @@ class GroupsView(ListView):
         return context
 
     def get_queryset(self):
-        groups_to_display = get_cohorts(self.request.user)
+        groups_to_display = get_recommendable(self.request.user)
         return groups_to_display
 
 
 @login_required
-def messagesView(request):
+def MessagesView(request):
     data = get_user_data(request.user)
     messages = get_recent_chats(request.user)
     return render(request, 'mainapp/messages.html',
@@ -114,53 +112,72 @@ class ProfileView(DetailView):
     template_name = 'mainapp/profile.html'
 
     def get_context_data(self, **kwargs):
-        cohorts = [Cohort.objects.get(id=coh_id) for coh_id in self.request.user.userprofile.user_groups]
+        cohorts = self.request.user.userprofile.user_cohorts.all()
         context = super(ProfileView, self).get_context_data(**kwargs)
         chatroom = get_chat_room(UserProfile.objects.get(id=self.kwargs['pk']).user.id, self.request.user.id)
         context.update({
             'cohorts': cohorts,
-            'chatroom': chatroom
+            'chatroom': chatroom,
+            'active_link': 'home_link',
         })
         return context
 
 
+@method_decorator(login_required, name='dispatch')
+class UserGroupsView(ListView):
+    template_name = 'mainapp/user-groups.html'
+    context_object_name = 'user_cohorts'
+    model = Cohort
+
+    def get_queryset(self):
+        user_cohorts = self.request.user.userprofile.user_cohorts.all()
+        all_cohorts = Cohort.objects.annotate(number_of_members=Count('user_cohorts'), total_posts=Count('question'))
+        return [cohort for cohort in all_cohorts if cohort in user_cohorts]
+
+
+def exitGroup(request):
+    if request.method == 'POST':
+        groupId = int(request.POST['cohort_id'])
+        if groupId:
+            try:
+                cohort = Cohort.objects.get(id=groupId)
+                request.user.userprofile.user_cohorts.remove(cohort)
+            except Cohort.DoesNotExist:
+                pass
+
+    return redirect('mainapp:userGroupsView', pk=request.user.id)
+
+
 def get_user_data(user):
     contacts = get_contacts(user)  # fetches users to display at quick-chat pane
-    user_cohorts = user.userprofile.user_groups  # IDs for cohorts that the user has joined
-    user_cohorts = [Cohort.objects.get(id=cohort) for cohort in user_cohorts]  # getting real cohorts from the ids
+    user_cohorts = user.userprofile.user_cohorts.all()  # cohorts that the user has joined
     '''using a linked_list to dynamically store questions/posts that can be displayed to the user(newsfeed)'''
     ids_list = SingleLinkedList()
     # Iterate through all user_groups and get the last 100 posts for each
-    for cohort in user_cohorts:
+    cohorts_list = [cohort for cohort in user_cohorts]
+    for cohort in cohorts_list:
         questions = Question.objects.filter(target_cohort=cohort).order_by('-time')[:100]
         if questions:
             for q in questions:
                 ids_list.insert_at_end(q.id)
     questions_list = [Question.objects.get(id=quiz_id) for quiz_id in ids_list.display_list()]
-    leaf_cohort = user.userprofile.study_field
-    all_cohorts = leaf_cohort.get_descendants(include_self=False)
-    to_recommend = []
-    for cohort in all_cohorts:
-        if cohort not in user_cohorts:
-            to_recommend.append(cohort)
-    random.shuffle(to_recommend)
+    to_recommend = get_recommendable(user)
     return {'to_recommend': to_recommend[:100], 'contacts': contacts[0], 'unread_messages': contacts[1],
             'questions': questions_list[:100], 'user_cohorts': user_cohorts}
 
 
 @login_required
-def join_groups(request, ):
+def join_groups(request):
     if request.method == 'POST':
-        if request.POST.getlist('to_join'):
-            to_join = [int(group_id) for group_id in request.POST.getlist('to_join')]
-            user_groups = request.user.userprofile.user_groups
-            for group_id in to_join:
-                user_groups.append(group_id)
-            new_user_groups_list = user_groups
-            user_profile = UserProfile.objects.get(user=request.user)
-            user_profile.user_groups = new_user_groups_list
-            user_profile.save()
-            increment_group_members(to_join)
+        to_join = request.POST.getlist('to_join')
+        if to_join:
+            to_join = list(map(int, to_join))
+            user_cohorts = request.user.userprofile.user_cohorts
+            for cohort_id in to_join:
+                try:
+                    user_cohorts.add(Cohort.objects.get(id=cohort_id))
+                except Cohort.DoesNotExist:
+                    print('Cohort not found')
             page = request.POST['page']
             if page == 'home':
                 return redirect('mainapp:homeView')
@@ -170,23 +187,19 @@ def join_groups(request, ):
     return redirect('mainapp:homeView')
 
 
-def get_cohorts(user):
-    user_cohorts = user.userprofile.user_groups
-    all_cohorts = Cohort.objects.all()
-    cohorts_list = [cohort.id for cohort in all_cohorts]
-    to_recommend = SingleLinkedList()
-    for coh_id in cohorts_list:
-        if binary_search(coh_id, user_cohorts) is None:
-            to_recommend.insert_at_end(coh_id)
-    to_recommend = [Cohort.objects.get(id=coh_id) for coh_id in to_recommend.display_list()]
+def get_recommendable(user):
+    user_cohorts = user.userprofile.user_cohorts.all()
+    housing_cohort = user.userprofile.study_field
+    all_cohorts = housing_cohort.get_descendants(include_self=False)
+    to_recommend = [cohort for cohort in all_cohorts if cohort not in user_cohorts]
     random.shuffle(to_recommend)
-    return to_recommend[0:30]
+    return to_recommend[:100]
 
 
 @csrf_exempt
 @login_required
 def create_post(request):
-    if request.is_ajax():
+    if request.is_ajax() or request.method == 'POST':
         content = request.POST['question-text']
         target_group_id = request.POST['question-group']
         if target_group_id:
@@ -205,8 +218,8 @@ def create_post(request):
                     response = {'message': 'Content or Image is required', 'code': 1}
         else:
             response = {'message': 'Please select the target group', 'code': 1}
-
-        return JsonResponse(response)
+        if request.is_ajax():
+            return JsonResponse(response)
 
     return redirect('mainapp:homeView')
 
@@ -219,7 +232,6 @@ def add_answer(request):
         question = Question.objects.get(id=int(request.POST['question']))
         new_answer = Answer(content=content, author=author, question=question)
         new_answer.save()
-        question.total_answers += 1
         question.save()
 
     return redirect('mainapp:homeView')
@@ -230,3 +242,7 @@ def handle_uploaded_file(file, desired_location):
     with open(settings.MEDIA_ROOT + '/' + desired_location + '/' + file.name, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
+
+
+def number_of_members(cohort):
+    return UserProfile.objects.filter(user_groups__contains=[cohort.id]).count()
