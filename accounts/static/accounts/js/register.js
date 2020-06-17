@@ -1,6 +1,7 @@
 let current_fs, next_fs, previous_fs; //fieldsets
 let left, opacity, scale; //fieldset properties which we will animate
 let animating; //flag to prevent quick multi-click glitches
+let cohorts =null;
 
 $(".next").click(function(){
     if(animating) return false;
@@ -23,7 +24,7 @@ $(".next").click(function(){
             mydiv.removeClass('offset-md-3');
             mydiv.addClass('col-md-10');
             mydiv.addClass('offset-md-1');
-            display_cohorts_for_first_time(field); // display groups that the user can join
+            displayCohortsFirstTime(field); // display groups that the user can join
         }
         //show the next fieldset
         next_fs.show();
@@ -155,35 +156,33 @@ function selectCard(id) {
     }
 }
 
-function display_cohorts_for_first_time(studyField){
+function displayCohortsFirstTime(studyField){
+    let loader_left = document.getElementById('load_previous');
+    let loader_right = document.getElementById('load_next');
     $.ajax({
         method: "POST",
         url: "to_join",
         data: {'coh_id':studyField},
         success: function(data) {
-
-            let loader_left = document.getElementById('load_previous');
-            let loader_right = document.getElementById('load_next');
-            let data_length = data.length;
+            cohorts = data;
+            let data_length = cohorts.length;
             if(data_length<4) {
-                changeCohortsContent(data, 0, data_length);
+                changeCohortsContent(cohorts, 0, data_length);
                 document.getElementById('right-count').value= data_length-1;
                 loader_left.style.color = '#F0F8FF';
                 loader_right.style.color = '#F0F8FF';
             }else{
-                changeCohortsContent(data, 0,3);
+                changeCohortsContent(cohorts, 0,3);
                 loader_left.style.color = '#F0F8FF';
                 loader_right.style.color = 'rgb(32, 207, 255)';
                 document.getElementById('right-count').value= 2;
             }
-            document.getElementById('left-count').value=0
+            document.getElementById('left-count').value=0;
             if(get_selected().length !==0){
-                style_previously_selected_cards(data);
+                style_previously_selected_cards(cohorts);
             }
         }
-
     });
-
 }
 
 function changeCohortsContent(data, index1, index2){
@@ -193,9 +192,10 @@ function changeCohortsContent(data, index1, index2){
         let content = ` 
                         <div class="col-md-4 col-sm-6">
                             <div class="card cohort-item" id="${data[i].id}" onclick="selectCard('${data[i].id}')">
-                                <img src="${data[i].logo}" alt="Group logo"/>
+                                <img src="${data[i].logo}" alt="" style="background: ${data[i].background_color}"/>
+                                <h4 class="cohort-title ">${ data[i].title }</h4>
                                 <div class="group-info">
-                                    <h4>${ data[i].title }</h4>
+<!--                                    <h4>${ data[i].title }</h4>-->
                                     <div class="row">
                                         <div class="col-sm-6 sub-column">
                                             <p><i class="fas fa-calendar"></i><span> Date Created</span><br/>
@@ -222,39 +222,31 @@ function changeCohortsContent(data, index1, index2){
 
 // load groups every time the user clicks on next/previous button
 function load_cohorts(direction){
-    $.ajax({
-        method: "POST",
-        url: "to_join",
-        data: {'coh_id':document.getElementById('study_field').value},
-        success: function(data) {
-            let left_input = document.getElementById('left-count');
-            let right_input = document.getElementById('right-count');
-            let left_value = parseInt(left_input.value);
-            let right_value = parseInt(right_input.value);
+    let data = cohorts;
+    let left_input = document.getElementById('left-count');
+    let right_input = document.getElementById('right-count');
+    let left_value = parseInt(left_input.value);
+    let right_value = parseInt(right_input.value);
 
-            if (direction === 'left' && left_value !== 0) {
-                changeCohortsContent(data, left_value - 3, left_value);
-                left_input.value = left_value-3;
-                right_input.value = left_value-1;
-                design_controls(data.length);
-                style_previously_selected_cards(data);
-            } else if (direction === 'right' && (right_value + 1) % 3 === 0 && data.length > right_value+1) {
-                if (data.length < right_value + 4) {
-                    changeCohortsContent(data, right_value + 1, data.length);
-                    right_input.value = data.length - 1;
-                    left_input.value = left_value+3
-                } else {
-                    changeCohortsContent(data, right_value + 1, right_value + 4);
-                    right_input.value = right_value + 3;
-                    left_input.value = left_value + 3;
-                }
-                design_controls(data.length);
-                style_previously_selected_cards(data);
-            }
+    if (direction === 'left' && left_value !== 0) {
+        changeCohortsContent(data, left_value - 3, left_value);
+        left_input.value = left_value-3;
+        right_input.value = left_value-1;
+        design_controls(data.length);
+        style_previously_selected_cards(data);
+    } else if (direction === 'right' && (right_value + 1) % 3 === 0 && data.length > right_value+1) {
+        if (data.length < right_value + 4) {
+            changeCohortsContent(data, right_value + 1, data.length);
+            right_input.value = data.length - 1;
+            left_input.value = left_value+3
+        } else {
+            changeCohortsContent(data, right_value + 1, right_value + 4);
+            right_input.value = right_value + 3;
+            left_input.value = left_value + 3;
         }
-
-    });
-
+        design_controls(data.length);
+        style_previously_selected_cards(data);
+    }
 }
 
 function design_controls(data_length){

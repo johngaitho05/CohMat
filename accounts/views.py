@@ -1,3 +1,4 @@
+import random
 import re
 
 from django.db.models import Count
@@ -7,6 +8,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
+
+from projectdir.utils import randomColor
 from .models import *
 from mainapp.models import *
 from django.contrib.auth import login, logout, authenticate
@@ -36,7 +39,7 @@ def anonymous_required(function=None, redirect_url=None):
 @anonymous_required
 def register_view(request):
     cohorts = Cohort.objects.all()
-    study_fields = Cohort.objects.filter(level=0)
+    study_fields = Cohort.objects.filter(level=0).order_by('title')
     if request.is_ajax():
         data = request.POST
         first_name = data['first_name']
@@ -177,22 +180,20 @@ def get_subcohorts(request):
         except Cohort.DoesNotExist:
             raise Http404("No cohort matches the given query.")
         subCohorts = cohort.get_descendants(include_self=False) \
-            .annotate(number_of_members=Count('user_cohorts'), total_posts=Count('question'))
-        cohorts_list = []
-        # index = 0
-        for cohort in subCohorts:
-            cohorts_list.append(cohort_to_json(cohort))
-        subCohorts = cohorts_list
+            .annotate(number_of_members=Count('user_cohorts'), total_posts=Count('question')).order_by('level')
+        subCohorts = [cohort_to_json(cohort) for cohort in subCohorts]
         return JsonResponse(subCohorts, safe=False)
-    else:
-        raise Http404("Bad Request")
+    return redirect('accounts:register')
 
 
 def cohort_to_json(cohort):
+    color1 = randomColor()
+    color2 = randomColor()
     return {
         'id': cohort.id,
         'title': cohort.title,
-        'logo': cohort.logo.url,
+        'logo': cohort.logo.url if cohort.logo else None,
+        'background_color': 'linear-gradient(to top,' + color1 + ' 0%,' + color2 + ' 100%)',
         'no_of_members': cohort.number_of_members,
         'total_posts': cohort.total_posts,
         'date_created': str(cohort.date_created)

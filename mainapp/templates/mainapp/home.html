@@ -55,11 +55,11 @@
                     <li><a href="#" data-toggle="modal" data-target="#answersModal{{ quiz.id }}"><i class="fas fa-comment">
 
                     </i> {% if quiz.number_of_answers == 1 %}
-                        <span class="ans-counter">1</span> Answer
+                        <span class="ans-counter">1</span> Comment
                     {% else %}
-                        <span class="ans-counter">{{ quiz.number_of_answers }}</span> Answers
+                        <span class="ans-counter">{{ quiz.number_of_answers }}</span> Comments
                     {% endif %}</a></li>
-                    <li class="float-right give-answer" onclick="openAnswerInput('{{ quiz.id }}')">Give your answer</li>
+                    <li class="float-right give-answer" onclick="openAnswerInput('{{ quiz.id }}')">Add a comment</li>
                 </ul>
                 <form class="answer-form form-inline" method="post" action="{% url 'mainapp:answer_quiz' %}">
                     {% csrf_token %}
@@ -72,7 +72,7 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title answer-heading" id="exampleModalLongTitle">Answers & comments for
+                                <h5 class="modal-title answer-heading" id="exampleModalLongTitle">Answers/comments for
                                     <span>{{ quiz.author.first_name }}</span>'s <span>question/post</span></h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>

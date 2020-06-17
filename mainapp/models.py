@@ -8,9 +8,9 @@ User = get_user_model()
 
 
 class Cohort(MPTTModel):
-    title = models.CharField(max_length=250)
-    logo = models.FileField(upload_to='group_logos')
-    description = models.TextField()
+    title = models.CharField(max_length=100, unique=True)
+    logo = models.FileField(upload_to='group_logos', null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     date_created = models.DateField(auto_now_add=True)
 
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
@@ -26,7 +26,7 @@ class Question(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
     target_cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE)
-    content = models.TextField()
+    content = models.TextField(null=True, blank=True)
     image = models.FileField(upload_to='images', blank=True, default='')
 
     def ago_time(self):
@@ -66,4 +66,3 @@ class Reply(models.Model):
 
     def ago_time(self):
         return AgoTime(self.time)
-

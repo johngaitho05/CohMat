@@ -5,22 +5,22 @@
 {% endblock %}
 {% block body %}
     <div class="col-md-6 offset-md-1 section-container">
-        <div class="info-panel">
-            <h2 id='page-heading'>Notifications</h2>
-            {% for notification in notifications %}
-                <div class="row notification-item">
-                    <div class="col-md-8">
-                        <p>
-                            {% if notification.author.userprofile.profile_photo %}
-                                <img src="{{ notification.author.userprofile.profile_photo.url }}" class="img-fluid profile-image" alt="author_photo"/>
-                            {% else %}
-                                <img src="{% static 'accounts/images/default_profile_pic.png' %}" class="img-fluid profile-image" alt="author_photo"/>
-                            {% endif %}
-                            {{ notification.author.first_name }} {{ notification.author.last_name }}
-                            {{ notification.content }}
-                        </p>
-                    </div>
-                    <div class="col-md-4 notification-time text-center">
+        {#        <div class="info-panel">#}
+        <h2 id='page-heading'>Notifications</h2>
+        {% for notification in notifications %}
+            <div class="row notification-item">
+                <div class="col-md-8">
+                    <p>
+                        {% if notification.author.userprofile.profile_photo %}
+                            <img src="{{ notification.author.userprofile.profile_photo.url }}" class="img-fluid profile-image" alt="author_photo"/>
+                        {% else %}
+                            <img src="{% static 'accounts/images/default_profile_pic.png' %}" class="img-fluid profile-image" alt="author_photo"/>
+                        {% endif %}
+                        {{ notification.author.first_name }} {{ notification.author.last_name }}
+                        {{ notification.content }}
+                    </p>
+                </div>
+                <div class="col-md-4 notification-time text-center">
                     {% if notification.ago_time.desc %}
                         <p class="timer time-element">
                             {% if notification.ago_time.count == 0 %}
@@ -29,13 +29,12 @@
                                 <span>{{ notification.ago_time.count }}&nbsp;</span>{{ notification.ago_time.desc }}
                             {% endif %}
                         </p>
-                        {% else %}
+                    {% else %}
                         <p class="time-element">{{ notification.ago_time }}</p>
                     {% endif %}
-                    </div>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% endfor %}
     </div>
     <script>
 

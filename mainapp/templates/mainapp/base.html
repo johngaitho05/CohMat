@@ -42,7 +42,7 @@
                 <a class="nav-link " data-toggle="modal" data-target="#questionModal"
                    id="question_link"  href="#">
                     <i class="fas fa-plus"></i>
-                    Question
+                    Question/Post
                 </a>
             </li>
             <li class="nav-item">
@@ -111,7 +111,7 @@
                     <table class=" table-condensed">
                         <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Profile</th>
                             <th>Current Interest</th>
                             <th>Open chat</th>
                         </tr>
@@ -141,7 +141,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">New Question</h5>
+                <h5 class="modal-title" id="exampleModalLabel">New Question/Post</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -156,7 +156,7 @@
                         </div>
                         <div class="question-details col-md-6">
                             <select name="question-group" id="question-group" required>
-                                {#                                <option value="">Select group</option>#}
+                               <option value="">Select group</option>
                                 {% for cohort in user_cohorts %}
                                     <option value="{{ cohort.id }}">{{ cohort.title }}</option>
                                 {% endfor %}
@@ -224,7 +224,7 @@
             let ans = $(this).find('textarea[name=answer]').val();
             let quizId = $(this).find('input[name=question]').val();
             if (ans.replace(/^\s+|\s+$/g, "").length === 0 || ans===""){
-                show_alert('Answer cannot be blank',1,2000)
+                show_alert('Comment cannot be blank',1,2000)
             }else{
                 let data = {
                     'command':'new_answer',

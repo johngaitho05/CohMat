@@ -1,3 +1,4 @@
+import random
 from datetime import datetime, date, timedelta
 from django.template.defaultfilters import timesince, register
 from django.utils import timezone
@@ -53,3 +54,12 @@ class CustomTimezoneMiddleware:
         else:
             timezone.deactivate()
         return self.get_response(request)
+
+
+def randomColor():
+    letters = "0123456789ABCDEF"
+    color = '#'
+    for i in range(6):
+        j = random.randint(0, 14)
+        color += letters[j]
+    return color if color != '#FFFFFF' else randomColor()

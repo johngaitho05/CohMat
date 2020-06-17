@@ -5,6 +5,10 @@
 .media{
     padding: 0;
 }
+.groups-container{
+    background-color: white;
+    padding: 0;
+}
 
 .cohort-item{
     margin: auto auto 20px;
@@ -31,9 +35,17 @@
 
 .cohort-item img{
     height: 200px;
+    cursor: pointer;
 }
-.cohort-item h4{
-    color:black
+.user-group-title{
+    font-size: 1.2em;
+    color: rgba(0, 0, 0, 0.84);
+}
+.info-heading{
+    font-size: 12px;
+    font-weight: 400;
+   color: rgba(0, 0, 0, 0.58);
+    margin-left: 5px;
 }
 .bottom-card-info{
     margin-left: 10px;
@@ -52,8 +64,8 @@
     text-align: center;
 }
 .group_data{
-    color: #2048ff;
-    font-size: 13px;
+    color: #3f88ff;
+    font-size: 11px;
 }
 
 .pager li{

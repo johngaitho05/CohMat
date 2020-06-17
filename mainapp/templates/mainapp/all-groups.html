@@ -1,21 +1,35 @@
 {% extends 'mainapp/base.html' %}
 {% block title %}
-    <title>Groups</title>
+    <title>Groups in {{ user.userprofile.study_field }}</title>
 {% endblock %}
 {% load static %}
+{% block css %}
+    <link href="https://fonts.googleapis.com/css2?family=Tenali+Ramakrishna&display=swap" rel="stylesheet">
+{% endblock %}
 {% block body %}
 
     <div class="col-md-7 section-container">
-        <h2 id='page-heading'>Groups</h2>
+        <h2 id='page-heading'>Groups in {{ user.userprofile.study_field }}</h2>
         {% for cohort in cohorts_list %}
             <div class="row group-item">
                 <div class="col-md-4">
-                    <img class="img-fluid cohort-logo" src="{{cohort.logo.url}}" alt="Group logo" />
+                    {% if cohort.logo %}
+                        <img class="img-fluid cohort-logo" src="{{cohort.logo.url}}" alt="Group logo" />
+                    {% else %}
+                        <img class="img-fluid cohort-logo" src="{% static 'mainapp/images/default-group-logo.jpg' %}" alt="Group logo" />
+                    {% endif %}
                 </div>
                 <div class="col-md-6">
-                    <h3>{{cohort.title}}</h3>
+                    <h3 class="group-title">{{cohort.title}}</h3>
+                    <p class="group-info">Date created: {{ cohort.date_created }}&nbsp;|&nbsp;
+                        Total members: {{ cohort.number_of_members }}&nbsp;|&nbsp;
+                        Total posts: {{ cohort.total_posts }}</p>
                     <p>
-                        {{cohort.description}}
+                        {% if cohort.description|truncatechars:200 %}
+                            {{cohort.description}}
+                        {% else %}
+                            No description
+                        {% endif %}
                     </p>
                 </div>
                 <div class="col-md-2 text-center">

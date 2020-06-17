@@ -149,11 +149,10 @@ def exitGroup(request):
 
 
 def get_user_data(user):
-    contacts = get_contacts(user)  # fetches users to display at quick-chat pane
-    user_cohorts = user.userprofile.user_cohorts.all()  # cohorts that the user has joined
+    contacts = get_contacts(user)  # fetches users to display at quick-chat panel
+    user_cohorts = user.userprofile.user_cohorts.all()
     '''using a linked_list to dynamically store questions/posts that can be displayed to the user(newsfeed)'''
     ids_list = SingleLinkedList()
-    # Iterate through all user_groups and get the last 100 posts for each
     cohorts_list = [cohort for cohort in user_cohorts]
     for cohort in cohorts_list:
         questions = Question.objects.filter(target_cohort=cohort).order_by('-time')[:100]
@@ -190,10 +189,11 @@ def join_groups(request):
 def get_recommendable(user):
     user_cohorts = user.userprofile.user_cohorts.all()
     housing_cohort = user.userprofile.study_field
-    all_cohorts = housing_cohort.get_descendants(include_self=False)
+    all_cohorts = housing_cohort.get_descendants(include_self=False).annotate(number_of_members=Count('user_cohorts'),
+                                                                              total_posts=Count('question'))
     to_recommend = [cohort for cohort in all_cohorts if cohort not in user_cohorts]
     random.shuffle(to_recommend)
-    return to_recommend[:100]
+    return to_recommend[:20]
 
 
 @csrf_exempt
