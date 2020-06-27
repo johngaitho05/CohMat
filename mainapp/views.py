@@ -44,9 +44,20 @@ class HomeView(ListView):
         return context
 
     def get_queryset(self):
+        self.reslove_integrity()
         questions = get_user_data(self.request.user)['questions']
         qs = Question.objects.annotate(number_of_answers=Count('answer')).order_by('-time')
         return [(q, Answer.objects.filter(question=q).order_by('-time')) for q in qs if q in questions]
+
+    def reslove_integrity(self):
+        user = self.request.user
+        profile = user.userprofile
+        cohort1 = profile.study_field
+        cohort2 = profile.current_interest
+        if cohort1 and cohort1.members.filter(id=user.id).count() == 0:
+            cohort1.members.add(user)
+        if cohort2 and cohort2.members.filter(id=user.id).count() == 0:
+            cohort1.members.add(user)
 
 
 @method_decorator(login_required, name='dispatch')
@@ -57,11 +68,14 @@ class GroupsView(ListView):
 
     def get_context_data(self, **kwargs):
         data = get_user_data(self.request.user)
+        notificationsCount = Notification.objects.filter(recipient=self.request.user, seen=False).count()
         context = super(GroupsView, self).get_context_data(**kwargs)
         context.update({
             'active_link': 'groups_link',
             'contacts': data['contacts'],
             'user_cohorts': data['user_cohorts'],
+            'unread_messages': data['unread_messages'],
+            'unread_notifications': notificationsCount
         })
         return context
 
@@ -73,12 +87,14 @@ class GroupsView(ListView):
 @login_required
 def MessagesView(request):
     data = get_user_data(request.user)
+    notificationsCount = Notification.objects.filter(recipient=request.user, seen=False).count()
     messages = get_recent_chats(request.user)
     return render(request, 'mainapp/messages.html',
                   {'active_link': 'messages_link',
                    'messages': messages,
                    'contacts': data['contacts'],
                    'user_cohorts': data['user_cohorts'],
+                   'unread_notifications': notificationsCount
                    })
 
 
@@ -99,6 +115,7 @@ class NotificationsView(ListView):
             'active_link': 'notifications_link',
             'contacts': data['contacts'],
             'user_cohorts': data['user_cohorts'],
+            'unread_messages': data['unread_messages'],
         })
         return context
 
@@ -112,7 +129,7 @@ class ProfileView(DetailView):
     template_name = 'mainapp/profile.html'
 
     def get_context_data(self, **kwargs):
-        cohorts = self.request.user.userprofile.user_cohorts.all()
+        cohorts = self.request.user.cohorts.all()
         context = super(ProfileView, self).get_context_data(**kwargs)
         chatroom = get_chat_room(UserProfile.objects.get(id=self.kwargs['pk']).user.id, self.request.user.id)
         context.update({
@@ -130,8 +147,9 @@ class UserGroupsView(ListView):
     model = Cohort
 
     def get_queryset(self):
-        user_cohorts = self.request.user.userprofile.user_cohorts.all()
-        all_cohorts = Cohort.objects.annotate(number_of_members=Count('user_cohorts'), total_posts=Count('question'))
+        user_cohorts = self.request.user.cohorts.all()
+        all_cohorts = Cohort.objects.annotate(number_of_members=Count('members', distinct=True),
+                                              total_posts=Count('question'))
         return [cohort for cohort in all_cohorts if cohort in user_cohorts]
 
 
@@ -141,7 +159,11 @@ def exitGroup(request):
         if groupId:
             try:
                 cohort = Cohort.objects.get(id=groupId)
-                request.user.userprofile.user_cohorts.remove(cohort)
+                cohort.members.remove(request.user)
+                profile = request.user.userprofile
+                if profile.current_interest == cohort:
+                    profile.current_interest = None
+                    profile.save()
             except Cohort.DoesNotExist:
                 pass
 
@@ -150,7 +172,8 @@ def exitGroup(request):
 
 def get_user_data(user):
     contacts = get_contacts(user)  # fetches users to display at quick-chat panel
-    user_cohorts = user.userprofile.user_cohorts.all()
+    print(contacts)
+    user_cohorts = user.cohorts.all()
     '''using a linked_list to dynamically store questions/posts that can be displayed to the user(newsfeed)'''
     ids_list = SingleLinkedList()
     cohorts_list = [cohort for cohort in user_cohorts]
@@ -171,10 +194,10 @@ def join_groups(request):
         to_join = request.POST.getlist('to_join')
         if to_join:
             to_join = list(map(int, to_join))
-            user_cohorts = request.user.userprofile.user_cohorts
             for cohort_id in to_join:
                 try:
-                    user_cohorts.add(Cohort.objects.get(id=cohort_id))
+                    cohort = Cohort.objects.get(id=cohort_id)
+                    cohort.members.add(request.user)
                 except Cohort.DoesNotExist:
                     print('Cohort not found')
             page = request.POST['page']
@@ -187,9 +210,9 @@ def join_groups(request):
 
 
 def get_recommendable(user):
-    user_cohorts = user.userprofile.user_cohorts.all()
+    user_cohorts = user.cohorts.all()
     housing_cohort = user.userprofile.study_field
-    all_cohorts = housing_cohort.get_descendants(include_self=False).annotate(number_of_members=Count('user_cohorts'),
+    all_cohorts = housing_cohort.get_descendants(include_self=False).annotate(number_of_members=Count('members'),
                                                                               total_posts=Count('question'))
     to_recommend = [cohort for cohort in all_cohorts if cohort not in user_cohorts]
     random.shuffle(to_recommend)

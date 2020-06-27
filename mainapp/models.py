@@ -12,6 +12,7 @@ class Cohort(MPTTModel):
     logo = models.FileField(upload_to='group_logos', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     date_created = models.DateField(auto_now_add=True)
+    members = models.ManyToManyField(User, related_name='cohorts', related_query_name='cohort')
 
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 

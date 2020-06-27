@@ -52,7 +52,6 @@ def register_view(request):
         school = data['school']
         Idslist = (data['cohorts'])
         if first_name and last_name and username and email and study_field and pass1 and pass2 and school:
-            print(study_field)
             defaultGroup = [Cohort.objects.get(id=int(study_field))]
             cohorts = getCohorts(Idslist) + defaultGroup if Idslist else defaultGroup
             if not is_valid_email(email):
@@ -125,7 +124,7 @@ def login_view(request):
 
 
 # Create profile for the registered user
-def create_profile(user, field_id, school, cohorts, profile_photo=None):
+def create_profile(user, field_id, school, cohorts_ids, profile_photo=None):
     study_field = Cohort.objects.get(id=int(field_id))
     if profile_photo is not None:
         handle_uploaded_file(profile_photo, 'profile_photos')
@@ -135,8 +134,12 @@ def create_profile(user, field_id, school, cohorts, profile_photo=None):
     else:
         new_profile = UserProfile(user=user, study_field=study_field, school=school)
     new_profile.save()
-    for cohort in cohorts:
-        new_profile.user_cohorts.add(cohort)
+    for cohort_id in cohorts_ids:
+        try:
+            cohort = Cohort.objects.get(id=cohort_id)
+            cohort.members.add(user)
+        except Cohort.DoesNotExist:
+            pass
     return new_profile
 
 
@@ -180,7 +183,7 @@ def get_subcohorts(request):
         except Cohort.DoesNotExist:
             raise Http404("No cohort matches the given query.")
         subCohorts = cohort.get_descendants(include_self=False) \
-            .annotate(number_of_members=Count('user_cohorts'), total_posts=Count('question')).order_by('level')
+            .annotate(number_of_members=Count('members'), total_posts=Count('question')).order_by('level')
         subCohorts = [cohort_to_json(cohort) for cohort in subCohorts]
         return JsonResponse(subCohorts, safe=False)
     return redirect('accounts:register')

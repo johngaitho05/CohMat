@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from datetime import date, datetime, timedelta
 from django.utils.safestring import mark_safe
+
+from mainapp.models import Cohort
 from .models import Message, ChatRoom
 
 
@@ -87,13 +89,18 @@ def contacts_view_extension(user):
 
 # return a list of ids for those users that qualify to be in the user contacts
 def get_contacts(user):
-    try:
-        contacts = User.objects.filter(userprofile__study_field=user.userprofile.study_field, is_active=True)
-    except UserProfile.DoesNotExist:
-        print('User does not have a profile')
-        raise Http404('Ops! Something went wrong')
-    contacts_list = [contact for contact in contacts if contact != user]
-    return get_chat_rooms(contacts_list, user)
+    profile = user.userprofile
+    user_interest = profile.current_interest
+    if user_interest:
+        cohorts = [user_interest] + [cohort for cohort in user.cohorts.exclude(id=user_interest.id)]
+    else:
+        cohorts = [cohort for cohort in user.cohorts.all()]
+    contacts = []
+    for cohort in cohorts:
+        if cohort.get_level() != 1:
+            contacts += [user for user in cohort.members.exclude(id=user.id)]
+    refined_contacts = [*set(contacts), ]
+    return get_chat_rooms(refined_contacts, user)
 
 
 # returns a list of recent chats to display on the homepage

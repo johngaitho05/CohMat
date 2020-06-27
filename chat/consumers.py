@@ -45,7 +45,6 @@ class ChatConsumer(WebsocketConsumer):
                                              time=current_time)
             update_last_message(room_name)
             recipient = get_active_contact(author_user.id, room_name)
-            print(recipient)
             content = {
                 'command': 'new_message',
                 'author': author_user.username,
