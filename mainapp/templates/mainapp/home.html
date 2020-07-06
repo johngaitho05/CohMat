@@ -30,7 +30,7 @@
     <!--News feed pane-->
     <div class="col-md-5 column" id="news-feed">
         <p class="column-title">News feed</p>
-        {% for quiz, answers in quiz_and_ans %}
+        {% for quiz in questions %}
             <div class="card" id="quiz_{{ quiz.id }}">
                 <p class="post-title">{{ quiz.author.first_name }} {{ quiz.author.last_name }}
                     <span>></span> {{ quiz.target_cohort }}
@@ -59,12 +59,12 @@
                     {% else %}
                         <span class="ans-counter">{{ quiz.number_of_answers }}</span> Comments
                     {% endif %}</a></li>
-                    <li class="float-right give-answer" onclick="openAnswerInput('{{ quiz.id }}')">Add a comment</li>
+                    <li class="float-right give-answer" onclick="showAnswerInput({{ quiz.id }})">Add a comment</li>
                 </ul>
-                <form class="answer-form form-inline" method="post" action="{% url 'mainapp:answer_quiz' %}">
+                <form class="answer-form form-inline" id="answer-form-{{ quiz.id }}" method="post" action="{% url 'mainapp:answer_quiz' %}">
                     {% csrf_token %}
                     <input type="hidden" value="{{ quiz.id }}" name="question"/>
-                    <textarea  cols="10" class="answer-input" name="answer" id="answer-input{{ quiz.id }}"></textarea>
+                    <textarea  cols="10" class="answer-input" name="answer" placeholder="Type your comment" id="answer-input{{ quiz.id }}"></textarea>
                     <button class="btn btn-primary send-answer" id="send-answer{{ quiz.id }}" type="submit">Send</button>
                 </form>
                 <!-- Answers modal -->
@@ -79,7 +79,7 @@
                                 </button>
                             </div>
                             <div class="modal-body" id="ansHolder_{{ quiz.id }}">
-                                {% for answer in answers %}
+                                {% for answer in quiz.answers.all %}
                                     <div class="answer-item">
                                         <img src="{{ answer.author.userprofile.profile_photo.url }}" class="img-fluid profile-image float-left" />
                                         <h5><b>{{ answer.author.first_name }} {{ answer.author.last_name }}</b></h5>

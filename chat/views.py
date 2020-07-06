@@ -75,7 +75,7 @@ def home(request):
 
 
 def contacts_view_extension(user):
-    contacts = get_contacts(user)[0]
+    contacts = get_contacts(user)
     count = len(contacts)
     if count > 100:
         count = '99+ Contacts'
@@ -134,14 +134,11 @@ def get_recent_chats(user):
 
 
 def get_chat_rooms(contacts, user):
-    total_unread = 0
     for i in range(len(contacts)):
         contact = contacts[i]
         room = get_chat_room(contact.id, user.id)
         contacts[i] = (contact, room)
-        unread = Message.objects.filter(chat_room=room.name, author=contact, read=False).count()
-        total_unread += unread
-    return [contacts, total_unread]
+    return contacts
 
 
 def get_chat_room(contact_id, user_id):

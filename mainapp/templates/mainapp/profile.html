@@ -31,6 +31,9 @@
                     <form class="interest-tag">
                         <label class="control-label" for="interest-input"><b>Current interest:</b></label>
                         <select class="form-control" id="interest-input" name="current_interest">
+                            {% if userprofile.current_interest %}
+                                <option value="">None</option>
+                            {% endif %}
                             <option value="{{  userprofile.current_interest.id }}">{{ userprofile.current_interest }}</option>
                             {% for cohort in cohorts %}
                                 {% if cohort != userprofile.current_interest %}

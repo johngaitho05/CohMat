@@ -26,6 +26,11 @@ class AgoTime:
         return
 
     def __str__(self):
+        if type(self.time) == datetime:
+            if timezone.now().year == self.time.year:
+                return self.time.strftime("%d/%m at %H:%M")
+            else:
+                return self.time.strftime("%m/%Y")
         return self.time
 
 
@@ -62,4 +67,4 @@ def randomColor():
     for i in range(6):
         j = random.randint(0, 14)
         color += letters[j]
-    return color if color != '#FFFFFF' else randomColor()
+    return color if 'FF' not in color else randomColor()

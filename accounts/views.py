@@ -183,7 +183,7 @@ def get_subcohorts(request):
         except Cohort.DoesNotExist:
             raise Http404("No cohort matches the given query.")
         subCohorts = cohort.get_descendants(include_self=False) \
-            .annotate(number_of_members=Count('members'), total_posts=Count('question')).order_by('level')
+            .annotate(number_of_members=Count('members'), total_posts=Count('question')).order_by('title')
         subCohorts = [cohort_to_json(cohort) for cohort in subCohorts]
         return JsonResponse(subCohorts, safe=False)
     return redirect('accounts:register')

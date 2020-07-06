@@ -16,8 +16,8 @@
                         {% else %}
                             <img src="{% static 'accounts/images/default_profile_pic.png' %}" class="img-fluid profile-image" alt="author_photo"/>
                         {% endif %}
-                        {{ notification.author.first_name }} {{ notification.author.last_name }}
-                        {{ notification.content }}
+                        <b>{{ notification.author.first_name }} {{ notification.author.last_name }}</b>
+                        {{ notification.description }}
                     </p>
                 </div>
                 <div class="col-md-4 notification-time text-center">

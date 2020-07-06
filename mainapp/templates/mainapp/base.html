@@ -234,6 +234,7 @@
                 console.log(data);
                 socket.send(JSON.stringify(data));
                 $(this)[0].reset();
+                hideAnswerInput(quizId)
             }
         })
     };

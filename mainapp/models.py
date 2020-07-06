@@ -2,6 +2,8 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
+from multiselectfield import MultiSelectField
+
 from projectdir.utils import AgoTime
 
 User = get_user_model()
@@ -38,12 +40,17 @@ class Question(models.Model):
 
 
 class Notification(models.Model):
+    NotificationTypes = (("NP", "New Post"),
+                         ('NM', "New Message"),
+                         ('NC', "New Comment"),
+                         ("NR", "New Reply"))
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='notifier')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='toNotify')
-    content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
     seen = models.BooleanField(default=False)
     read = models.BooleanField(default=False)
+    category = MultiSelectField(choices=NotificationTypes, max_length=2, default='NP', max_choices=1)
+    description = models.TextField(blank=True, null=True)
 
     def ago_time(self):
         return AgoTime(self.time)
@@ -51,7 +58,7 @@ class Notification(models.Model):
 
 class Answer(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, related_name='answers', on_delete=models.CASCADE)
     content = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
 

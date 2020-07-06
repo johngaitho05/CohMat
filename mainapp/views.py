@@ -1,7 +1,7 @@
 import json
 import random
 
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.utils import timezone
 from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
@@ -22,15 +22,15 @@ from data_structures.LinkedLists.SingleLinkedList import SingleLinkedList
                   name='dispatch')
 class HomeView(ListView):
     template_name = 'mainapp/home.html'
-    context_object_name = 'quiz_and_ans'
+    context_object_name = 'questions'
     model = Question
 
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
         data = get_user_data(self.request.user)
-        notificationsCount = Notification.objects.filter(recipient=self.request.user, seen=False).count()
         today = timezone.now()
         yesterday = today - timezone.timedelta(days=1)
+        unread = get_unread(self.request.user)
         context.update({
             'active_link': 'home_link',
             'to_recommend': data['to_recommend'],
@@ -38,16 +38,16 @@ class HomeView(ListView):
             'user_cohorts': data['user_cohorts'],
             'today': today.date(),
             'yesterday': yesterday,
-            'unread_messages': data['unread_messages'],
-            'unread_notifications': notificationsCount
+            'unread_notifications': unread[0],
+            'unread_messages': unread[1]
+
         })
         return context
 
     def get_queryset(self):
         self.reslove_integrity()
         questions = get_user_data(self.request.user)['questions']
-        qs = Question.objects.annotate(number_of_answers=Count('answer')).order_by('-time')
-        return [(q, Answer.objects.filter(question=q).order_by('-time')) for q in qs if q in questions]
+        return questions.annotate(number_of_answers=Count('answers'))
 
     def reslove_integrity(self):
         user = self.request.user
@@ -68,14 +68,14 @@ class GroupsView(ListView):
 
     def get_context_data(self, **kwargs):
         data = get_user_data(self.request.user)
-        notificationsCount = Notification.objects.filter(recipient=self.request.user, seen=False).count()
         context = super(GroupsView, self).get_context_data(**kwargs)
+        unread = get_unread(self.request.user)
         context.update({
             'active_link': 'groups_link',
             'contacts': data['contacts'],
             'user_cohorts': data['user_cohorts'],
-            'unread_messages': data['unread_messages'],
-            'unread_notifications': notificationsCount
+            'unread_notifications': unread[0],
+            'unread_messages': unread[1]
         })
         return context
 
@@ -87,14 +87,14 @@ class GroupsView(ListView):
 @login_required
 def MessagesView(request):
     data = get_user_data(request.user)
-    notificationsCount = Notification.objects.filter(recipient=request.user, seen=False).count()
     messages = get_recent_chats(request.user)
+    Notification.objects.filter(category__icontains='NM', seen=False).update(seen=True)
     return render(request, 'mainapp/messages.html',
                   {'active_link': 'messages_link',
                    'messages': messages,
                    'contacts': data['contacts'],
                    'user_cohorts': data['user_cohorts'],
-                   'unread_notifications': notificationsCount
+                   'unread_notifications': get_unread(request.user)[0]
                    })
 
 
@@ -106,21 +106,18 @@ class NotificationsView(ListView):
 
     def get_context_data(self, **kwargs):
         data = get_user_data(self.request.user)
-        notifications = Notification.objects.filter(recipient=self.request.user, seen=False)
-        for item in notifications:
-            item.seen = True
-            item.save()
+        Notification.objects.filter(seen=False).update(seen=True)
         context = super(NotificationsView, self).get_context_data(**kwargs)
         context.update({
             'active_link': 'notifications_link',
             'contacts': data['contacts'],
             'user_cohorts': data['user_cohorts'],
-            'unread_messages': data['unread_messages'],
+            'unread_messages': get_unread(self.request.user)[1],
         })
         return context
 
     def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user).order_by('-time')
+        return Notification.objects.filter(recipient=self.request.user).exclude(category__icontains='NM').order_by('-time') 
 
 
 @method_decorator(login_required, name='dispatch')
@@ -172,20 +169,11 @@ def exitGroup(request):
 
 def get_user_data(user):
     contacts = get_contacts(user)  # fetches users to display at quick-chat panel
-    print(contacts)
-    user_cohorts = user.cohorts.all()
-    '''using a linked_list to dynamically store questions/posts that can be displayed to the user(newsfeed)'''
-    ids_list = SingleLinkedList()
-    cohorts_list = [cohort for cohort in user_cohorts]
-    for cohort in cohorts_list:
-        questions = Question.objects.filter(target_cohort=cohort).order_by('-time')[:100]
-        if questions:
-            for q in questions:
-                ids_list.insert_at_end(q.id)
-    questions_list = [Question.objects.get(id=quiz_id) for quiz_id in ids_list.display_list()]
+    user_cohorts = user.cohorts.all()  # cohorts that the user has joined
+    questions = Question.objects.filter(target_cohort__in=user_cohorts).order_by('-time')
     to_recommend = get_recommendable(user)
-    return {'to_recommend': to_recommend[:100], 'contacts': contacts[0], 'unread_messages': contacts[1],
-            'questions': questions_list[:100], 'user_cohorts': user_cohorts}
+    return {'to_recommend': to_recommend[:100], 'contacts': contacts,
+            'questions': questions[:100], 'user_cohorts': user_cohorts}
 
 
 @login_required
@@ -216,7 +204,7 @@ def get_recommendable(user):
                                                                               total_posts=Count('question'))
     to_recommend = [cohort for cohort in all_cohorts if cohort not in user_cohorts]
     random.shuffle(to_recommend)
-    return to_recommend[:20]
+    return to_recommend[:30]
 
 
 @csrf_exempt
@@ -269,3 +257,10 @@ def handle_uploaded_file(file, desired_location):
 
 def number_of_members(cohort):
     return UserProfile.objects.filter(user_groups__contains=[cohort.id]).count()
+
+
+def get_unread(user):
+    unreadNotifications = Notification.objects.filter(recipient=user).exclude(category__icontains='NM').exclude(
+        seen=True).count()
+    unreadMessages = Notification.objects.filter(recipient=user, category__icontains='NM', seen=False).count()
+    return [unreadNotifications, unreadMessages]

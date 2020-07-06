@@ -85,23 +85,26 @@ $('#question-form').submit(function(e){
 });
 
 // Opening an input when the user clicks on 'give your answer' button
-function openAnswerInput(id){
-    let otherForms = $('.answer-form');
-    let answer_input = document.getElementById('answer-input'.concat(id));
-    let send_button = document.getElementById('send-answer'.concat(id));
-    answer_input.style.width = '80%';
-    answer_input.style.height = '50px';
-    answer_input.focus();
-    answer_input.placeholder = 'Type your answer here';
-    send_button.style.opacity = 'unset';
-    send_button.style.left = '0';
-    answer_input.parentElement.setAttribute('id','activeAnsForm')
-}
+function showAnswerInput(id){
+    let ansForms = $('.answer-form');
+    ansForms.each(function() {
+        $(this).css({height:0,opacity:0,overflow:"hidden",pointerEvents:'none'})
+    });
+    let activeForm = $('#'+"answer-form-"+id);
+    const input = activeForm.find('textarea');
+    input.val("");
+    activeForm.css({height:"auto",opacity:1,overflow:"visible",pointerEvents:'all'});
+    input.focus()
 
+}
+const hideAnswerInput=(id)=>{
+    let activeForm = $('#'+"answer-form-"+id);
+    activeForm.css({height:0,opacity:0,overflow:"hidden",pointerEvents:'none'})
+};
 
 function allow_profile_editing(){
 // find all inputs in the page
-    let to_edit = document.querySelectorAll("input")
+    let to_edit = document.querySelectorAll("input");
 // make all the inputs editable by removing the readonly attribute
     for (let i = 0; i< to_edit.length; i++){
         if(to_edit[i].name !== 'email'){
@@ -205,7 +208,7 @@ function HandleAnswerNotification(data, currentUsername){
             $('#notifications-badge').html("<sup id='notification-count'>1</sup>");
         }
     }else{
-        show_alert('Answer added', 0,3000)
+        show_alert('Comment added', 0,3000)
     }
     let quiz = $('#'+'quiz_' + data['quizId']);
     let counter2 = quiz.find($('.ans-counter'));

@@ -37,7 +37,6 @@ class NotificationConsumer(AsyncConsumer):
                 if notificationType == 'new_answer':
                     ans = loaded_data.get('answer')
                     quiz_id = int(loaded_data.get('questionId'))
-                    print(quiz_id)
                     question = Question.objects.filter(id=quiz_id).first()
 
                     """check whether the question being answered exists"""
@@ -50,8 +49,8 @@ class NotificationConsumer(AsyncConsumer):
                         await self.save_answer(author, question, ans)
                         # save the notification to database
                         if recipient != author:
-                            notification_message = 'commented on your post'
-                            await self.save_notification(author, recipient, notification_message)
+                            notification_description = 'commented on your post'
+                            await self.save_notification(author, recipient, 'NC', notification_description)
 
                         ''' the content to be sent as notification'''
                         response = {
@@ -75,6 +74,8 @@ class NotificationConsumer(AsyncConsumer):
                     message = loaded_data.get('message') or None
                     idNum = get_active_contact_id(author.id, chat_room)
                     if idNum and idNum != -1:
+                        recipient = User.objects.get(pk=idNum)
+                        await self.save_notification(author, recipient, 'NM', message)
                         newRoom = f'room_{idNum}'
                         await self.channel_layer.group_add(newRoom, self.channel_name)
                         response = {
@@ -111,5 +112,6 @@ class NotificationConsumer(AsyncConsumer):
         return Answer.objects.create(author=author, question=question, content=answer)
 
     @database_sync_to_async
-    def save_notification(self, author, recipient, content):
-        return Notification.objects.create(author=author, recipient=recipient, content=content)
+    def save_notification(self, author, recipient, category, description):
+        return Notification.objects.create(author=author, recipient=recipient, category=category,
+                                           description=description)
