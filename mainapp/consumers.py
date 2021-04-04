@@ -74,14 +74,14 @@ class NotificationConsumer(AsyncConsumer):
                     message = loaded_data.get('message') or None
                     idNum = get_active_contact_id(author.id, chat_room)
                     if idNum and idNum != -1:
-                        recipient = User.objects.get(pk=idNum)
+                        recipient = await self.get_user(idNum)
                         await self.save_notification(author, recipient, 'NM', message)
                         newRoom = f'room_{idNum}'
                         await self.channel_layer.group_add(newRoom, self.channel_name)
                         response = {
                             'command': notificationType,
                             'notifierName': reportingName,
-                            'notifierPhoto': author.userprofile.profile_photo.url,
+                            'notifierPhoto': await self.get_profile_photo_url(author),
                             'message': message
                         }
                         # broadcasts the notification to be sent
@@ -92,6 +92,7 @@ class NotificationConsumer(AsyncConsumer):
                                 "text": json.dumps(response)
                             }
                         )
+
 
     async def new_notification(self, event):
         # sends the notification to the target party
@@ -106,6 +107,14 @@ class NotificationConsumer(AsyncConsumer):
             self.channel_name
         )
         raise StopConsumer()
+
+    @database_sync_to_async
+    def get_profile_photo_url(self,author):
+        return author.userprofile.profile_photo.url
+
+    @database_sync_to_async
+    def get_user(self,idNum):
+        return User.objects.get(pk=idNum)
 
     @database_sync_to_async
     def save_answer(self, author, question, answer):

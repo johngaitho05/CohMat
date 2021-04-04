@@ -1,6 +1,6 @@
 {% extends 'chat/base.html' %}
 {% load tz %}
-{% load staticfiles %}
+{% load static %}
 {% block css %}
     {% static  'chat/css/chat.css' %}
 {% endblock %}
@@ -183,6 +183,7 @@
             let chatSocket = new ReconnectingWebSocket(endpoint1);
             let notifySocket = new ReconnectingWebSocket(endpoint2);
             chatSocket.onmessage = function(e) {
+                console.log("message came through...")
                 let data = JSON.parse(e.data);
                 HandleMessage(data, username, {{ active_contact.id }})
             };

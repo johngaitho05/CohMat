@@ -149,3 +149,4 @@ EMAIL_HOST_PASSWORD = 'sjnpaoagjcmcrhfb'
 EMAIL_PORT = 587
 
 LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/'
+

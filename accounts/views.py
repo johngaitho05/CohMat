@@ -124,7 +124,7 @@ def login_view(request):
 
 
 # Create profile for the registered user
-def create_profile(user, field_id, school, cohorts_ids, profile_photo=None):
+def create_profile(user, field_id, school, cohorts, profile_photo=None):
     study_field = Cohort.objects.get(id=int(field_id))
     if profile_photo is not None:
         handle_uploaded_file(profile_photo, 'profile_photos')
@@ -134,9 +134,8 @@ def create_profile(user, field_id, school, cohorts_ids, profile_photo=None):
     else:
         new_profile = UserProfile(user=user, study_field=study_field, school=school)
     new_profile.save()
-    for cohort_id in cohorts_ids:
+    for cohort in cohorts:
         try:
-            cohort = Cohort.objects.get(id=cohort_id)
             cohort.members.add(user)
         except Cohort.DoesNotExist:
             pass
